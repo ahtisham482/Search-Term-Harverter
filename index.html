@@ -87,6 +87,8 @@
       --text-muted: var(--slate-600);
       /* Fixed contrast: 7:1 ratio */
       --text-disabled: var(--slate-500);
+      --text-main: var(--slate-900);
+      /* Main text color for headings and important content */
       --border: var(--slate-200);
       --border-strong: var(--slate-300);
 
@@ -604,7 +606,7 @@
       padding: 6px 12px;
       font-size: var(--text-xs);
       background: var(--slate-100);
-      color: var(--text-muted);
+      color: #334155;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       cursor: pointer;
@@ -1250,6 +1252,33 @@
       color: #cbd5e1;
     }
 
+    /* --- Results Section --- */
+    #results {
+      color: #0F172A;
+      opacity: 1 !important;
+      filter: none !important;
+      visibility: visible !important;
+      animation: none !important;
+      transform: none !important;
+    }
+
+    #results * {
+      opacity: 1 !important;
+    }
+
+    #results .h2 {
+      font-size: var(--text-xl);
+      font-weight: 600;
+      color: #0F172A;
+      letter-spacing: -0.01em;
+    }
+
+    #results [id^="results-"] {
+      color: #0F172A;
+      opacity: 1 !important;
+      filter: none !important;
+    }
+
     /* --- Card & Table --- */
     .prod-card {
       background: var(--bg-card);
@@ -1257,8 +1286,35 @@
       border-radius: var(--radius-lg);
       margin-bottom: 24px;
       box-shadow: var(--shadow-md);
-      overflow: hidden;
+      overflow: visible;
       transition: transform 0.2s;
+    }
+
+    /* Ensure details content is visible when open */
+    .prod-card[open]>.bucket-section {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    .prod-card[open] .bucket-wrapper {
+      display: block !important;
+    }
+
+    .prod-card[open] .table-container {
+      display: block !important;
+    }
+
+    .prod-card[open] table {
+      display: table !important;
+    }
+
+    .prod-card[open] tbody {
+      display: table-row-group !important;
+    }
+
+    .prod-card[open] tbody tr:not(.detail-row) {
+      display: table-row !important;
     }
 
     summary {
@@ -1293,7 +1349,7 @@
     .prod-title {
       font-size: 15px;
       font-weight: 700;
-      color: var(--text-main);
+      color: #0F172A;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -1328,6 +1384,28 @@
 
     .bucket-section {
       padding: 24px;
+      background: var(--bg-card);
+      position: relative;
+    }
+
+    /* Ensure table content is always visible */
+    .bucket-section .table-container {
+      background: var(--bg-card);
+      position: relative;
+      z-index: 1;
+    }
+
+    .bucket-section table {
+      background: var(--bg-card);
+    }
+
+    .bucket-section tbody td {
+      color: var(--text-primary);
+      background: inherit;
+    }
+
+    .bucket-section .cell-main {
+      color: var(--primary);
     }
 
     .bucket-wrapper {
@@ -1918,6 +1996,223 @@
 
     ::-webkit-scrollbar-thumb:hover {
       background: var(--slate-500);
+    }
+
+    /* --- Modal Styles (Journey Viewer) --- */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      position: relative;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 600px;
+      width: 90%;
+      max-height: 85vh;
+      overflow: hidden;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--slate-50);
+    }
+
+    .modal-title {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      font-size: 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+
+    .modal-close:hover {
+      background: var(--slate-200);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: var(--space-3);
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-top: 1px solid var(--border);
+      background: var(--slate-50);
+    }
+
+    /* --- Journey Viewer Styles --- */
+    .journey-timeline {
+      position: relative;
+      padding: 20px 0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .journey-step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .journey-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .journey-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 32px;
+      bottom: -24px;
+      width: 2px;
+      background: var(--slate-200);
+    }
+
+    .step-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 2;
+      font-size: 14px;
+    }
+
+    .step-icon.success {
+      background: var(--success-light);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .step-icon.error {
+      background: var(--error-light);
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .step-icon.warning {
+      background: var(--warning-light);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .step-content {
+      flex: 1;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .step-details {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .journey-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .journey-badge.harvested {
+      background: var(--success);
+      color: white;
+    }
+
+    .journey-badge.excluded {
+      background: var(--slate-500);
+      color: white;
+    }
+
+    .journey-metric {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--slate-50);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--slate-200);
+      margin-right: 8px;
+      margin-bottom: 8px;
+      font-family: monospace;
     }
 
     /* Loading Skeleton */
@@ -2926,6 +3221,265 @@
       height: 1px;
       background: var(--border);
     }
+
+    /* ===== DEBUG MODE STYLES ===== */
+    .debug-toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px dashed #f59e0b;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    .debug-toggle-wrapper .help-icon {
+      font-size: 10px;
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fbbf24;
+      color: white;
+      border-radius: 50%;
+      cursor: help;
+    }
+
+    .debug-summary-panel {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1px solid #fbbf24;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .debug-summary-panel.visible {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .debug-summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .debug-summary-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .debug-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .debug-stat-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      border: 1px solid #fde68a;
+    }
+
+    .debug-stat-label {
+      font-size: 11px;
+      color: #92400e;
+      margin-bottom: 4px;
+    }
+
+    .debug-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #78350f;
+    }
+
+    .debug-stat-value.success {
+      color: var(--success);
+    }
+
+    .debug-stat-value.error {
+      color: var(--error);
+    }
+
+    .debug-stat-value.warning {
+      color: #f59e0b;
+    }
+
+    .debug-search-wrapper {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .debug-search-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      background: white;
+    }
+
+    .debug-search-input:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .debug-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .debug-btn {
+      padding: 6px 12px;
+      border: 1px solid #fbbf24;
+      background: white;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      color: #92400e;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .debug-btn:hover {
+      background: #fef3c7;
+      border-color: #f59e0b;
+    }
+
+    .debug-warning-banner {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #92400e;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .debug-warning-banner.visible {
+      display: flex;
+    }
+
+    /* Debug Rule Breakdown in Details Row */
+    .debug-rule-breakdown {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .debug-rule-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .debug-rule-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 6px;
+    }
+
+    .debug-rule-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 8px;
+      background: white;
+      border-radius: var(--radius-sm);
+      border: 1px solid #fde68a;
+    }
+
+    .debug-rule-item.pass {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .debug-rule-item.fail {
+      border-color: #fca5a5;
+      background: #fef2f2;
+    }
+
+    .debug-rule-item.skip {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+
+    .debug-rule-icon {
+      font-size: 12px;
+    }
+
+    .debug-rule-name {
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .debug-rule-value {
+      color: #64748b;
+    }
+
+    .debug-decision-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .debug-decision-badge.harvested {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .debug-decision-badge.excluded {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .debug-decision-badge.negative {
+      background: #fef3c7;
+      color: #92400e;
+    }
   </style>
 </head>
 
@@ -3145,7 +3699,17 @@
         <div id="productRulesContainer" style="max-height:400px; overflow-y:auto; padding-right:4px;">
           <div style="font-size:12px; color:#94a3b8; font-style:italic;">Upload file to detect products...</div>
         </div>
-      </div> <button id="processBtn" class="btn btn-primary btn-cta" disabled>Run Analysis</button>
+      </div>
+      <!-- Debug Mode Toggle -->
+      <div class="debug-toggle-wrapper" id="debugToggleWrapper">
+        <label class="switch" style="margin:0;">
+          <input type="checkbox" id="toggleDebugMode">
+          <span class="slider"></span>
+        </label>
+        <span>🔍 Debug Mode</span>
+        <span class="help-icon" title="Shows detailed pass/fail info for each rule on every keyword">?</span>
+      </div>
+      <button id="processBtn" class="btn btn-primary btn-cta" disabled>Run Analysis</button>
       <div style="margin-top:24px;">
         <div class="panel-title" style="margin-bottom:8px;">Quick Jump</div>
         <div id="productNav" class="product-nav"></div>
@@ -3155,6 +3719,61 @@
       <!-- Results display area -->
 
       <div id="resultsSummary" style="margin-bottom:16px; font-size:13px; font-weight:600; color:var(--text-muted);">
+      </div>
+
+      <!-- Debug Summary Panel -->
+      <div id="debugSummaryPanel" class="debug-summary-panel">
+        <div class="debug-warning-banner" id="debugWarningBanner">
+          ⚠️ <strong>Large File Detected:</strong> Debug Mode is processing 10,000+ rows. This may take longer than
+          usual.
+        </div>
+        <div class="debug-summary-header">
+          <div class="debug-summary-title">
+            🔍 Debug Summary — Processing Transparency
+          </div>
+          <button class="debug-btn" onclick="toggleDebugPanel()">Collapse</button>
+        </div>
+        <div id="debugPanelContent">
+          <div class="debug-stats-grid">
+            <div class="debug-stat-card" onclick="filterDebugByStat('total')" style="cursor:pointer;" title="Show All">
+              <div class="debug-stat-label">Total Rows Processed</div>
+              <div class="debug-stat-value" id="debugStatTotal">0</div>
+            </div>
+            <div class="debug-stat-card" onclick="filterDebugByStat('passed')" style="cursor:pointer;"
+              title="Show Passed">
+              <div class="debug-stat-label">Passed All Rules</div>
+              <div class="debug-stat-value success" id="debugStatPassed">0</div>
+            </div>
+            <div class="debug-stat-card" onclick="filterDebugByStat('failed')" style="cursor:pointer;"
+              title="Show Failed">
+              <div class="debug-stat-label">Failed Rules</div>
+              <div class="debug-stat-value error" id="debugStatFailed">0</div>
+            </div>
+            <div class="debug-stat-card" onclick="filterDebugByStat('duplicates')" style="cursor:pointer;"
+              title="Show Duplicates">
+              <div class="debug-stat-label">Duplicates Detected</div>
+              <div class="debug-stat-value warning" id="debugStatDuplicates">0</div>
+            </div>
+            <!-- Negative Stat Removed -->
+          </div>
+          <div class="debug-search-wrapper">
+            <input type="text" class="debug-search-input" id="debugSearchInput"
+              placeholder="🔍 Search keywords, campaigns, products, or reasons..."
+              oninput="filterDebugResults(this.value)">
+            <div id="debugSearchResults" style="margin-top:8px; max-height:300px; overflow-y:auto; display:none;"></div>
+          </div>
+          <div class="debug-actions">
+            <button class="debug-btn" onclick="exportDebugLogCSV()">📥 Export Debug Log (CSV)</button>
+            <button class="debug-btn" onclick="showFailedRulesBreakdown()">📊 Failed Rules Breakdown</button>
+            <button class="debug-btn" onclick="clearDebugLog()">🗑️ Clear Debug Log</button>
+          </div>
+          <div id="debugFailedBreakdown"
+            style="display:none; margin-top:12px; padding:12px; background:white; border-radius:var(--radius-md); border:1px solid #fde68a;">
+            <div style="font-size:11px; font-weight:700; color:#92400e; margin-bottom:8px;">Failed Rules Breakdown:
+            </div>
+            <div id="debugFailedBreakdownContent" style="font-size:12px;"></div>
+          </div>
+        </div>
       </div>
       <div id="suggestionsBar" class="suggestions-bar hidden">
         <div class="left">
@@ -3600,7 +4219,12 @@
             </div>
             <div class="bulk-stickybar">
               <div class="left">Step 2: Export your bulk upload file (.xlsx)</div>
-              <div class="right"><button id="btnExportBulk" class="btn btn-primary">Download Bulk File (.xlsx)</button>
+              <div class="right" style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-secondary btn-sm" onclick="showLogicHierarchy()"
+                  style="display:flex; align-items:center; gap:6px; background:white; color:var(--text-primary); border:1px solid var(--border-strong);">
+                  <span style="font-size:16px;">🧠</span> How Logic Works
+                </button>
+                <button id="btnExportBulk" class="btn btn-primary">Download Bulk File (.xlsx)</button>
               </div>
             </div>
             <div id="bulkStatus" style="margin-top:8px; font-size:12px; font-weight:600; text-align:left;"></div>
@@ -4452,6 +5076,391 @@
           let productSkuMap = {}; // NEW: Stores extracted SKUs { "Product Name": "SKU" }
           let renamedCampaignsList = []; // Tracks campaigns that were renamed due to duplicates
 
+          /* --- DEBUG MODE STATE --- */
+          let debugModeEnabled = false;
+          let debugLog = []; // Stores all debug entries
+          let debugStats = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            duplicates: 0,
+            negatives: 0,
+            failedByRule: { orders: 0, acos: 0, spend: 0, clicks: 0, cv: 0, ctr: 0 }
+          };
+
+          /* --- DEBUG MODE FUNCTIONS --- */
+          function isDebugModeEnabled() {
+            return document.getElementById('toggleDebugMode')?.checked || false;
+          }
+
+          function resetDebugStats() {
+            debugLog = [];
+            debugStats = {
+              total: 0,
+              passed: 0,
+              failed: 0,
+              duplicates: 0,
+              negatives: 0,
+              failedByRule: { orders: 0, acos: 0, spend: 0, clicks: 0, cv: 0, ctr: 0 }
+            };
+          }
+
+          function updateDebugSummaryPanel() {
+            const panel = document.getElementById('debugSummaryPanel');
+            if (!isDebugModeEnabled()) {
+              panel.classList.remove('visible');
+              return;
+            }
+            panel.classList.add('visible');
+
+            // Update stats
+            document.getElementById('debugStatTotal').textContent = debugStats.total.toLocaleString();
+            document.getElementById('debugStatPassed').textContent = debugStats.passed.toLocaleString();
+            document.getElementById('debugStatFailed').textContent = debugStats.failed.toLocaleString();
+            document.getElementById('debugStatDuplicates').textContent = debugStats.duplicates.toLocaleString();
+            document.getElementById('debugStatNegatives').textContent = debugStats.negatives.toLocaleString();
+
+            // Show warning for large files
+            const warningBanner = document.getElementById('debugWarningBanner');
+            if (debugStats.total >= 10000) {
+              warningBanner.classList.add('visible');
+            } else {
+              warningBanner.classList.remove('visible');
+            }
+          }
+
+          function toggleDebugPanel() {
+            const content = document.getElementById('debugPanelContent');
+            const btn = event.target;
+            if (content.style.display === 'none') {
+              content.style.display = 'block';
+              btn.textContent = 'Collapse';
+            } else {
+              content.style.display = 'none';
+              btn.textContent = 'Expand';
+            }
+          }
+
+          function addDebugEntry(entry) {
+            if (!isDebugModeEnabled()) return;
+            debugLog.push(entry);
+            debugStats.total++;
+
+            if (entry.decision === 'HARVESTED') {
+              debugStats.passed++;
+            } else if (entry.decision === 'EXCLUDED') {
+              debugStats.failed++;
+              // Track which rules failed
+              if (entry.failedRules) {
+                entry.failedRules.forEach(rule => {
+                  if (debugStats.failedByRule[rule] !== undefined) {
+                    debugStats.failedByRule[rule]++;
+                  }
+                });
+              }
+            } else if (entry.decision === 'DUPLICATE') {
+              debugStats.duplicates++;
+            } else if (entry.decision === 'NEGATIVE') {
+              debugStats.negatives++;
+            }
+          }
+
+          function exportDebugLogCSV() {
+            if (!debugLog.length) {
+              showToast('No debug data to export. Run analysis with Debug Mode enabled.');
+              return;
+            }
+
+            // Build CSV
+            const headers = [
+              'Search Term', 'Product', 'Source Campaign', 'Decision', 'Reason',
+              'Bucket', 'Orders', 'Orders Threshold', 'Orders Pass',
+              'ACoS', 'ACoS Threshold', 'ACoS Pass',
+              'Spend', 'Spend Threshold', 'Spend Pass',
+              'Clicks', 'Clicks Threshold', 'Clicks Pass',
+              'Conv Rate', 'CV Threshold', 'CV Pass',
+              'CTR', 'CTR Threshold', 'CTR Pass',
+              'Is Duplicate', 'Duplicate Match', 'Existing Campaigns'
+            ];
+
+            let csv = headers.join(',') + '\n';
+
+            debugLog.forEach(entry => {
+              const row = [
+                `"${(entry.searchTerm || '').replace(/"/g, '""')}"`,
+                `"${(entry.product || '').replace(/"/g, '""')}"`,
+                `"${(entry.sourceCampaign || '').replace(/"/g, '""')}"`,
+                entry.decision || '',
+                `"${(entry.reason || '').replace(/"/g, '""')}"`,
+                entry.bucket || '',
+                entry.metrics?.orders ?? '',
+                entry.rules?.orders?.threshold ?? '',
+                entry.rules?.orders?.passed ?? '',
+                entry.metrics?.acos ?? '',
+                entry.rules?.acos?.threshold ?? '',
+                entry.rules?.acos?.passed ?? '',
+                entry.metrics?.spend ?? '',
+                entry.rules?.spend?.threshold ?? '',
+                entry.rules?.spend?.passed ?? '',
+                entry.metrics?.clicks ?? '',
+                entry.rules?.clicks?.threshold ?? '',
+                entry.rules?.clicks?.passed ?? '',
+                entry.metrics?.cv ?? '',
+                entry.rules?.cv?.threshold ?? '',
+                entry.rules?.cv?.passed ?? '',
+                entry.metrics?.ctr ?? '',
+                entry.rules?.ctr?.threshold ?? '',
+                entry.rules?.ctr?.passed ?? '',
+                entry.duplicateCheck?.isDuplicate ?? '',
+                `"${(entry.duplicateCheck?.matchedKey || '').replace(/"/g, '""')}"`,
+                `"${(entry.duplicateCheck?.existingCampaigns || []).join(' | ').replace(/"/g, '""')}"`
+              ];
+              csv += row.join(',') + '\n';
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `TermHarvester_DebugLog_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+
+            showToast(`Exported ${debugLog.length} debug entries to CSV`);
+          }
+
+          function showFailedRulesBreakdown() {
+            const container = document.getElementById('debugFailedBreakdown');
+            const content = document.getElementById('debugFailedBreakdownContent');
+
+            if (container.style.display === 'none') {
+              let html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">';
+              const rules = [
+                { key: 'orders', label: 'Orders (>=)', color: '#dc2626' },
+                { key: 'acos', label: 'ACoS (<=)', color: '#ea580c' },
+                { key: 'spend', label: 'Spend (<=)', color: '#d97706' },
+                { key: 'clicks', label: 'Clicks (>=)', color: '#ca8a04' },
+                { key: 'cv', label: 'Conv Rate (>=)', color: '#65a30d' },
+                { key: 'ctr', label: 'CTR (>=)', color: '#0891b2' }
+              ];
+
+              rules.forEach(rule => {
+                const count = debugStats.failedByRule[rule.key] || 0;
+                html += `<div style="padding:8px; background:#fef2f2; border-radius:6px; border-left:3px solid ${rule.color};">
+                  <div style="font-size:10px; color:#64748b;">${rule.label}</div>
+                  <div style="font-size:16px; font-weight:700; color:${rule.color};">${count.toLocaleString()}</div>
+                </div>`;
+              });
+
+              html += '</div>';
+              content.innerHTML = html;
+              container.style.display = 'block';
+            } else {
+              container.style.display = 'none';
+            }
+          }
+
+          function filterDebugResults(query) {
+            const q = query.toLowerCase().trim();
+            const resultsDiv = document.getElementById('debugSearchResults');
+
+            if (!q) {
+              // Clear filter - restore all rows
+              document.querySelectorAll('tbody tr').forEach(tr => {
+                if (!tr.classList.contains('detail-row')) {
+                  tr.style.display = '';
+                }
+              });
+              if (resultsDiv) {
+                resultsDiv.innerHTML = '';
+                resultsDiv.style.display = 'none';
+              }
+              return;
+            }
+
+            // Filter debug log
+            const matchingEntries = [];
+            debugLog.forEach((entry, index) => {
+              const searchable = [
+                entry.searchTerm,
+                entry.product,
+                entry.sourceCampaign,
+                entry.decision,
+                entry.reason
+              ].join(' ').toLowerCase();
+
+              if (searchable.includes(q)) {
+                matchingEntries.push({ index, entry });
+              }
+            });
+
+            // Apply filter to visible rows (Main Table)
+            const matchingTerms = new Set(matchingEntries.map(x => (x.entry.searchTerm || '').toLowerCase()));
+            document.querySelectorAll('tbody tr').forEach(tr => {
+              if (tr.classList.contains('detail-row')) return;
+              const term = tr.querySelector('.cell-main')?.textContent?.toLowerCase() || '';
+              if (matchingTerms.has(term) || term.includes(q)) {
+                tr.style.display = '';
+              } else {
+                tr.style.display = 'none';
+              }
+            });
+
+            // Render Debug Results List (for checking excluded items)
+            if (resultsDiv) {
+              if (matchingEntries.length > 0) {
+                let html = '<div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Debug Results (All):</div>';
+
+                // Show top 50 matches to prevent lag
+                matchingEntries.slice(0, 50).forEach(({ index, entry }) => {
+                  let badgeClass = 'status-excluded';
+                  if (entry.decision === 'HARVESTED') badgeClass = 'status-success';
+                  if (entry.decision === 'NEGATIVE') badgeClass = 'status-negative';
+                  const badgeStyle = entry.decision === 'HARVESTED' ? 'background:#dcfce7; color:#166534;' :
+                    (entry.decision === 'NEGATIVE' ? 'background:#fee2e2; color:#991b1b;' : 'background:#f1f5f9; color:#475569;');
+
+                  html += `
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="min-width:0; padding-right:8px;">
+                            <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(entry.searchTerm)}</div>
+                            <div style="font-size:10px; color:#64748b; display:flex; align-items:center; gap:6px; margin-top:2px;">
+                              <span style="padding:2px 6px; border-radius:4px; font-weight:600; font-size:9px; ${badgeStyle}">${entry.decision}</span>
+                              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(entry.product)}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="padding:4px 8px; font-size:10px; white-space:nowrap; color:var(--primary); font-weight:600;" onclick="viewJourney(${index})">See Journey</button>
+                    </div>`;
+                });
+
+                if (matchingEntries.length > 50) {
+                  html += `<div style="font-size:10px; color:var(--text-muted); text-align:center; padding:4px;">+${matchingEntries.length - 50} more matches...</div>`;
+                }
+
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = 'block';
+              } else {
+                resultsDiv.innerHTML = '<div style="font-size:11px; color:var(--text-muted); padding:8px; text-align:center;">No matching entries found in debug log.</div>';
+                resultsDiv.style.display = 'block';
+              }
+            }
+          }
+
+          // Debug Stat Filtering Logic
+          function filterDebugByStat(type) {
+            const resultsDiv = document.getElementById('debugSearchResults');
+            const searchInput = document.getElementById('debugSearchInput');
+            if (searchInput) searchInput.value = ''; // Clear search input
+
+            if (type === 'total') {
+              // "Total Rows Processed" -> Reset all filters
+              filterDebugResults('');
+              return;
+            }
+
+            const matchingEntries = [];
+            debugLog.forEach((entry, index) => {
+              let match = false;
+              if (type === 'passed' && entry.decision === 'HARVESTED') match = true;
+              else if (type === 'failed' && entry.decision === 'EXCLUDED') match = true;
+              else if (type === 'duplicates' && (entry.decision === 'DUPLICATE' || entry.duplicateCheck?.isDuplicate)) match = true;
+              else if (type === 'negatives' && entry.decision === 'NEGATIVE') match = true;
+
+              if (match) matchingEntries.push({ index, entry });
+            });
+
+            // Populate Results List
+            if (resultsDiv) {
+              if (matchingEntries.length > 0) {
+                let html = `<div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:8px;">Filtered Results: ${type.toUpperCase()} (${matchingEntries.length})</div>`;
+
+                // Show top 100 for drill-down to be useful
+                matchingEntries.slice(0, 100).forEach(({ index, entry }) => {
+                  let badgeClass = 'status-excluded';
+                  if (entry.decision === 'HARVESTED') badgeClass = 'status-success';
+                  if (entry.decision === 'NEGATIVE') badgeClass = 'status-negative';
+                  const badgeStyle = entry.decision === 'HARVESTED' ? 'background:#dcfce7; color:#166534;' :
+                    (entry.decision === 'NEGATIVE' ? 'background:#fee2e2; color:#991b1b;' : 'background:#f1f5f9; color:#475569;');
+
+                  html += `
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:6px; padding:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="min-width:0; padding-right:8px;">
+                            <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(entry.searchTerm)}</div>
+                            <div style="font-size:10px; color:#64748b; display:flex; align-items:center; gap:6px; margin-top:2px;">
+                              <span style="padding:2px 6px; border-radius:4px; font-weight:600; font-size:9px; ${badgeStyle}">${entry.decision}</span>
+                              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(entry.product)}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="padding:4px 8px; font-size:10px; white-space:nowrap; color:var(--primary); font-weight:600;" onclick="viewJourney(${index})">See Journey</button>
+                    </div>`;
+                });
+
+                if (matchingEntries.length > 100) {
+                  html += `<div style="font-size:10px; color:var(--text-muted); text-align:center; padding:4px;">+${matchingEntries.length - 100} more matches...</div>`;
+                }
+
+                resultsDiv.innerHTML = html;
+                resultsDiv.style.display = 'block';
+              } else {
+                resultsDiv.innerHTML = `<div style="font-size:11px; color:var(--text-muted); padding:8px; text-align:center;">No entries found for ${type}.</div>`;
+                resultsDiv.style.display = 'block';
+              }
+            }
+          }
+
+          function clearDebugLog() {
+            resetDebugStats();
+            updateDebugSummaryPanel();
+            showToast('Debug log cleared');
+          }
+
+          function generateDebugRuleBreakdownHTML(entry) {
+            if (!entry || !entry.rules) return '';
+
+            const rules = [
+              { key: 'orders', label: 'Orders', op: '>=' },
+              { key: 'acos', label: 'ACoS', op: '<=' },
+              { key: 'spend', label: 'Spend', op: '<=' },
+              { key: 'clicks', label: 'Clicks', op: '>=' },
+              { key: 'cv', label: 'Conv %', op: '>=' },
+              { key: 'ctr', label: 'CTR %', op: '>=' }
+            ];
+
+            let html = '<div class="debug-rule-breakdown"><div class="debug-rule-title">🔍 Rule Breakdown</div><div class="debug-rule-grid">';
+
+            rules.forEach(rule => {
+              const ruleData = entry.rules[rule.key];
+              if (!ruleData) {
+                html += `<div class="debug-rule-item skip">
+                  <span class="debug-rule-icon">⏭️</span>
+                  <span class="debug-rule-name">${rule.label}</span>
+                  <span class="debug-rule-value">Not checked</span>
+                </div>`;
+              } else {
+                const icon = ruleData.passed ? '✅' : '❌';
+                const cls = ruleData.passed ? 'pass' : 'fail';
+                const val = ruleData.value !== undefined ? ruleData.value : '-';
+                const thresh = ruleData.threshold !== undefined ? ruleData.threshold : '-';
+                html += `<div class="debug-rule-item ${cls}">
+                  <span class="debug-rule-icon">${icon}</span>
+                  <span class="debug-rule-name">${rule.label}</span>
+                  <span class="debug-rule-value">${val} ${rule.op} ${thresh}</span>
+                </div>`;
+              }
+            });
+
+            html += '</div>';
+
+            // Add decision badge
+            const decisionClass = entry.decision === 'HARVESTED' ? 'harvested' :
+              entry.decision === 'EXCLUDED' ? 'excluded' : 'negative';
+            html += `<div style="margin-top:10px;"><span class="debug-decision-badge ${decisionClass}">${entry.decision}</span>`;
+            if (entry.reason) {
+              html += ` <span style="font-size:11px; color:#64748b; margin-left:8px;">${entry.reason}</span>`;
+            }
+            html += '</div></div>';
+
+            return html;
+          }
+
           /* --- DOM Elements --- */
           const fileInputSP = document.getElementById('fileInputSP');
           const dropZoneSP = document.getElementById('dropZoneSP');
@@ -5180,6 +6189,47 @@
 
           /* --- Helper: Logic --- */
           function findColumn(headers, containsTextArray) { const lowerHeaders = headers.map(h => h.toLowerCase()); for (let i = 0; i < headers.length; i++) { const h = lowerHeaders[i]; let ok = true; for (const txt of containsTextArray) { if (!h.includes(txt.toLowerCase())) { ok = false; break; } } if (ok) return headers[i]; } return null; }
+
+          /* --- NEW: Case-Insensitive Header Normalization --- */
+          // Creates a mapping from lowercase header names to original header names
+          function createHeaderMap(headers) {
+            const map = {};
+            (headers || []).forEach(h => {
+              const key = (h || "").toString().trim().toLowerCase();
+              if (key && !map[key]) {
+                map[key] = h; // Store original header name
+              }
+            });
+            return map;
+          }
+
+          // Normalizes all row keys to a consistent format (uses first occurrence of each header)
+          function normalizeRowHeaders(rows, headerMap) {
+            if (!rows || !rows.length || !headerMap) return rows;
+
+            return rows.map(row => {
+              const newRow = {};
+              Object.keys(row).forEach(originalKey => {
+                const lowerKey = (originalKey || "").toString().trim().toLowerCase();
+                // Use the canonical header name from the map, or keep original if not found
+                const canonicalKey = headerMap[lowerKey] || originalKey;
+                newRow[canonicalKey] = row[originalKey];
+              });
+              return newRow;
+            });
+          }
+
+          // Find column name case-insensitively from headers
+          function findColumnCaseInsensitive(headers, targetName) {
+            const target = (targetName || "").toString().trim().toLowerCase();
+            if (!target) return null;
+            for (const h of (headers || [])) {
+              if ((h || "").toString().trim().toLowerCase() === target) {
+                return h;
+              }
+            }
+            return null;
+          }
           function pickKpiColumns(headers) { const H = (headers || []).map(h => (h ?? "").toString()); const find = (regexList) => H.find(h => regexList.some(rx => rx.test(h))); return { "Impressions": find([/^impressions$/i, /\bimpressions\b/i]), "Clicks": find([/^clicks?$/i, /\bclicks?\b/i]), "CTR": find([/click-thru rate/i, /\bctr\b/i]), "CPC": find([/cost per click/i, /\(cpc\)/i, /\bcpc\b/i]), "Spend": find([/^spend$/i, /\bspend\b/i]), "Sales": find([/^7\s*day\s*total\s*sales/i, /\btotal sales\b/i]), "Orders": find([/^7\s*day\s*total\s*orders/i, /\btotal orders\b/i]), "ACoS": find([/total advertising cost of sales/i, /\bacos\b/i]), "ROAS": find([/total return on advertising spend/i, /\broas\b/i]), "Conversion Rate": find([/7\s*day\s*conversion\s*rate/i, /conversion rate/i]) }; }
           /* --- ENHANCED: Configurable Product Name Extractor --- */
           function extractProductName(campaignName) {
@@ -5360,21 +6410,32 @@
                 const data = new Uint8Array(event.target.result);
                 const wb = XLSX.read(data, { type: 'array' });
                 const ws = wb.Sheets[wb.SheetNames[0]];
-                const jsonRaw = XLSX.utils.sheet_to_json(ws, { defval: "", raw: true });
-                const jsonFmt = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+                let jsonRaw = XLSX.utils.sheet_to_json(ws, { defval: "", raw: true });
+                let jsonFmt = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
 
                 if (!jsonRaw || !jsonRaw.length) { setStatus(which, "File is empty.", "error"); return; }
+
+                // Create header map for case-insensitive normalization
+                const originalHeaders = Object.keys(jsonRaw[0] || {});
+                const headerMap = createHeaderMap(originalHeaders);
+
+                // Normalize row headers to ensure consistent case handling
+                jsonRaw = normalizeRowHeaders(jsonRaw, headerMap);
+                jsonFmt = normalizeRowHeaders(jsonFmt, headerMap);
+
+                // Get the normalized headers (first occurrence of each unique header)
+                const normalizedHeaders = Object.keys(jsonRaw[0] || {});
 
                 if (which === "SP") {
                   spRowsRaw = jsonRaw;
                   spRowsFmt = jsonFmt;
-                  spHeaders = Object.keys(jsonRaw[0] || {});
+                  spHeaders = normalizedHeaders;
                   filesUploaded.sp = true;
                 }
                 else {
                   sbRowsRaw = jsonRaw;
                   sbRowsFmt = jsonFmt;
-                  sbHeaders = Object.keys(jsonRaw[0] || {});
+                  sbHeaders = normalizedHeaders;
                   filesUploaded.sb = true;
                 }
 
@@ -5733,6 +6794,11 @@
 
           /* --- UPDATED: Processing Logic with Multi-KPI Per Product --- */
           function processSingleReport(which) {
+            // Reset debug stats if this is SP (first report processed)
+            if (which === "SP") {
+              resetDebugStats();
+            }
+
             const rowsRaw = (which === "SP") ? spRowsRaw : sbRowsRaw;
             const rowsFmt = (which === "SP") ? spRowsFmt : sbRowsFmt;
             const headerList = (which === "SP") ? spHeaders : sbHeaders;
@@ -5792,70 +6858,82 @@
               // CHECK RULES
               const rules = productRules[product] || {};
               let pass = true;
+              const failedRules = [];
+
+              // Build debug entry template
+              const debugEntry = {
+                searchTerm: (row[colTerm] || "").toString().trim(),
+                product: product,
+                sourceCampaign: sourceCampaign,
+                metrics: {
+                  orders: rOrders,
+                  acos: valAcos,
+                  spend: rSpend,
+                  clicks: rClicks,
+                  cv: valConv,
+                  ctr: valCtr
+                },
+                rules: {},
+                decision: null,
+                reason: null,
+                bucket: null,
+                duplicateCheck: null
+              };
 
               // 1. Orders (>=)
-              if (rules.orders !== undefined && rOrders < rules.orders) pass = false;
+              if (rules.orders !== undefined) {
+                const ordersPassed = rOrders >= rules.orders;
+                debugEntry.rules.orders = { value: rOrders, threshold: rules.orders, passed: ordersPassed };
+                if (!ordersPassed) { pass = false; failedRules.push('orders'); }
+              }
               // 2. ACoS (<=)
-              if (pass && rules.acos !== undefined && (valAcos === 0 || valAcos > rules.acos)) pass = false;
+              if (rules.acos !== undefined) {
+                const acosPassed = valAcos > 0 && valAcos <= rules.acos;
+                debugEntry.rules.acos = { value: valAcos.toFixed(2), threshold: rules.acos, passed: acosPassed };
+                if (pass && !acosPassed) { pass = false; failedRules.push('acos'); }
+              }
               // 3. Spend (<=)
-              if (pass && rules.spend !== undefined && rSpend > rules.spend) pass = false;
+              if (rules.spend !== undefined) {
+                const spendPassed = rSpend <= rules.spend;
+                debugEntry.rules.spend = { value: rSpend.toFixed(2), threshold: rules.spend, passed: spendPassed };
+                if (pass && !spendPassed) { pass = false; failedRules.push('spend'); }
+              }
               // 4. Clicks (>=)
-              if (pass && rules.clicks !== undefined && rClicks < rules.clicks) pass = false;
+              if (rules.clicks !== undefined) {
+                const clicksPassed = rClicks >= rules.clicks;
+                debugEntry.rules.clicks = { value: rClicks, threshold: rules.clicks, passed: clicksPassed };
+                if (pass && !clicksPassed) { pass = false; failedRules.push('clicks'); }
+              }
               // 5. Conv Rate (>=)
-              if (pass && rules.cv !== undefined && valConv < rules.cv) pass = false;
+              if (rules.cv !== undefined) {
+                const cvPassed = valConv >= rules.cv;
+                debugEntry.rules.cv = { value: valConv.toFixed(2), threshold: rules.cv, passed: cvPassed };
+                if (pass && !cvPassed) { pass = false; failedRules.push('cv'); }
+              }
               // 6. CTR (>=)
-              if (pass && rules.ctr !== undefined && valCtr < rules.ctr) pass = false;
+              if (rules.ctr !== undefined) {
+                const ctrPassed = valCtr >= rules.ctr;
+                debugEntry.rules.ctr = { value: valCtr.toFixed(2), threshold: rules.ctr, passed: ctrPassed };
+                if (pass && !ctrPassed) { pass = false; failedRules.push('ctr'); }
+              }
 
               // Check if should be collected as negative keyword
               const customerSearchTerm = (row[colTerm] || "").toString().trim();
               if (!customerSearchTerm) continue;
 
-              const generateNegatives = document.getElementById('toggleGenerateNegatives')?.checked;
-              if (generateNegatives && !pass) {
-                // Check negative criteria
-                const negSpendNoOrders = document.getElementById('negCriteriaSpendNoOrders')?.checked;
-                const negHighAcos = document.getElementById('negCriteriaHighAcos')?.checked;
-                const negLowCvr = document.getElementById('negCriteriaLowCvr')?.checked;
+              // Negative Keyword Logic REMOVED per user request
+              // if (generateNegatives && !pass) { ... }
 
-                const spendThreshold = parseFloat(document.getElementById('negSpendThreshold')?.value || 50);
-                const acosThreshold = parseFloat(document.getElementById('negAcosThreshold')?.value || 100);
-                const cvrThreshold = parseFloat(document.getElementById('negCvrThreshold')?.value || 1);
-
-                let isNegative = false;
-                let negReason = '';
-
-                if (negSpendNoOrders && rSpend >= spendThreshold && rOrders === 0) {
-                  isNegative = true;
-                  negReason = `Spend $${rSpend.toFixed(2)}, 0 orders`;
-                } else if (negHighAcos && valAcos >= acosThreshold) {
-                  isNegative = true;
-                  negReason = `ACoS ${valAcos.toFixed(1)}%`;
-                } else if (negLowCvr && valConv < cvrThreshold && valConv > 0) {
-                  isNegative = true;
-                  negReason = `Conv ${valConv.toFixed(2)}%`;
+              if (!pass) {
+                // Log excluded term to debug
+                if (!debugEntry.decision) {
+                  debugEntry.decision = 'EXCLUDED';
+                  debugEntry.reason = `Failed rules: ${failedRules.join(', ')}`;
+                  debugEntry.failedRules = failedRules;
+                  addDebugEntry(debugEntry);
                 }
-
-                if (isNegative) {
-                  if (!harvestedNegatives[which][product]) {
-                    harvestedNegatives[which][product] = [];
-                  }
-
-                  const wordCount = countWords(customerSearchTerm);
-                  const negMatchType = wordCount >= 4 ? 'Exact' : 'Phrase';
-
-                  harvestedNegatives[which][product].push({
-                    term: normalizeKeyword(customerSearchTerm),
-                    matchType: negMatchType,
-                    reason: negReason,
-                    spend: rSpend,
-                    acos: valAcos,
-                    cvr: valConv,
-                    sourceCampaign: sourceCampaign
-                  });
-                }
+                continue;
               }
-
-              if (!pass) continue;
 
               // Passed! Harvest Logic...
 
@@ -5903,6 +6981,23 @@
                 if (!grouped[product]) grouped[product] = {};
                 if (!grouped[product][bucket]) grouped[product][bucket] = { final: [], excluded: [] };
                 if (isDup) grouped[product][bucket].excluded.push(out); else grouped[product][bucket].final.push(out);
+
+                // Add debug entry for harvested item
+                debugEntry.bucket = bucket;
+                debugEntry.duplicateCheck = {
+                  isDuplicate: isDup,
+                  matchedKey: isDup ? val : null,
+                  existingCampaigns: (isDup && alreadyCampaigns[product]?.[bucket]?.[val]) ? Array.from(alreadyCampaigns[product][bucket][val]) : []
+                };
+                if (isDup) {
+                  debugEntry.decision = 'DUPLICATE';
+                  debugEntry.reason = `Already targeted in: ${out["Already Targeted In Campaigns"] || "existing campaigns"}`;
+                } else {
+                  debugEntry.decision = 'HARVESTED';
+                  debugEntry.reason = `Passed all rules → ${bucket}`;
+                }
+                addDebugEntry({ ...debugEntry }); // Clone to avoid mutation
+                out.debugIndex = debugLog.length - 1;
               };
 
               if (asinExpanded || termIsAsin) {
@@ -5929,6 +7024,12 @@
             ensureSuggestionsBarVisibility();
             updateSmartBids();
 
+            // Ensure Bulk Export Section is Visible
+            const bulkPanel = document.getElementById('bulkStepPanel');
+            if (bulkPanel) bulkPanel.classList.remove('hidden');
+            const bulkCta = document.getElementById('bulkCtaWrap');
+            if (bulkCta) bulkCta.classList.remove('hidden');
+
             // UX/UI Improvements: Update dashboard and hide skeleton
             if (typeof updateResultsDashboard === 'function') {
               updateResultsDashboard();
@@ -5936,6 +7037,9 @@
             if (typeof hideLoadingSkeleton === 'function') {
               hideLoadingSkeleton();
             }
+
+            // Update Debug Summary Panel
+            updateDebugSummaryPanel();
           }
 
           /* --- New Helper: Deduplicate Internal Matches --- */
@@ -6098,11 +7202,14 @@
               container = document.createElement("div");
               container.id = `results-${which}`;
               container.style.marginBottom = "40px";
-              container.className = "animate-slideUp";
-              container.innerHTML = `<div class="h2" style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:20px;">${which === "SP" ? "Sponsored Products" : "Sponsored Brands"} Analysis</div>`;
+              container.style.color = "#0F172A";
+              container.style.opacity = "1";
+              container.style.filter = "none";
+              container.innerHTML = `<div class="h2" style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:20px; color:#0F172A; font-weight:600; font-size:1.25rem;">${which === "SP" ? "Sponsored Products" : "Sponsored Brands"} Analysis</div>`;
               resultsEl.appendChild(container);
             } else {
-              container.innerHTML = `<div class="h2" style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:20px;">${which === "SP" ? "Sponsored Products" : "Sponsored Brands"} Analysis</div>`;
+              container.style.color = "#0F172A";
+              container.innerHTML = `<div class="h2" style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:20px; color:#0F172A; font-weight:600; font-size:1.25rem;">${which === "SP" ? "Sponsored Products" : "Sponsored Brands"} Analysis</div>`;
             }
 
             const products = Object.keys(grouped).sort();
@@ -6127,7 +7234,7 @@
 
               // 1. PRODUCT LEVEL COPY BUTTON
               summary.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px;"> <div class="prod-title">${product}</div> <button class="btn-copy-small" onclick="handleCopyProduct(event, '${escapeHtml(product)}', '${which}')"> <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-width="2"></path></svg>
+          <div style="display:flex; align-items:center; gap:10px;"> <div class="prod-title" style="color:#0F172A;">${product}</div> <button class="btn-copy-small" style="color:#334155;" onclick="handleCopyProduct(event, '${escapeHtml(product)}', '${which}')"> <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-width="2"></path></svg>
               Copy All
             </button> </div> <div class="prod-meta"><span class="status-pill status-success" style="font-size:11px; padding:6px 12px;">Final: ${fTotal}</span><span class="status-pill status-excluded" style="font-size:11px; padding:6px 12px;">Excl: ${eTotal}</span></div>
         `;
@@ -6232,7 +7339,7 @@
                ${termVal}
                <div class="icon-copy-row" title="Copy Term" onclick="copyToClipboard('${escapeHtml(termVal)}')"> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> </div> </div> </td>
           ${kpiCells}
-          <td><span class="${dup ? 'text-red' : 'text-green'}" style="font-weight:700; font-size:11px;">${dup ? 'YES' : 'NO'}</span></td> <td style="text-align:right;"><button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="toggleRowDetail(this)">Details</button></td>
+          <td><span class="${dup ? 'text-red' : 'text-green'}" style="font-weight:700; font-size:11px;">${dup ? 'YES' : 'NO'}</span></td> <td style="text-align:right;">${r.debugIndex !== undefined ? `<button class="btn btn-secondary" style="padding:4px 10px; font-size:11px; margin-right:4px;" onclick="viewJourney(${r.debugIndex})">See Journey ➡️</button>` : ''}<button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="toggleRowDetail(this)">Details</button></td>
         `;
               tbody.appendChild(tr);
 
@@ -6486,17 +7593,27 @@
                 // Loop ALL sheets (Works for both CSV and XLSX)
                 wb.SheetNames.forEach(sheetName => {
                   const ws = wb.Sheets[sheetName];
-                  const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+                  let json = XLSX.utils.sheet_to_json(ws, { defval: "" });
                   if (!json.length) return;
+
+                  // Normalize headers for case-insensitive access
+                  const originalHeaders = Object.keys(json[0] || {});
+                  const headerMap = createHeaderMap(originalHeaders);
+                  json = normalizeRowHeaders(json, headerMap);
+
+                  // Find the correct column names case-insensitively
+                  const normalizedHeaders = Object.keys(json[0] || {});
+                  const campaignCol = findColumnCaseInsensitive(normalizedHeaders, "Campaign Name (Informational only)")
+                    || findColumnCaseInsensitive(normalizedHeaders, "Campaign Name")
+                    || findColumnCaseInsensitive(normalizedHeaders, "Campaigns")
+                    || findColumnCaseInsensitive(normalizedHeaders, "Campaign")
+                    || findColumn(normalizedHeaders, ["campaign"]);
+                  const skuCol = findColumnCaseInsensitive(normalizedHeaders, "SKU")
+                    || findColumn(normalizedHeaders, ["sku"]);
 
                   json.forEach(row => {
                     // A. FIND CAMPAIGN NAME (For Duplication Check)
-                    const cName =
-                      row["Campaign Name (Informational only)"] ||
-                      row["Campaign Name"] ||
-                      row["Campaigns"] ||
-                      row["Campaign"] ||
-                      row["campaign_name"];
+                    const cName = campaignCol ? row[campaignCol] : null;
 
                     if (cName && typeof cName === 'string' && cName.trim().length > 0) {
                       // Ignore header-like rows if they slip in
@@ -6506,7 +7623,7 @@
                       }
 
                       // B. FIND SKU (Only if we have a campaign name on this row)
-                      const sku = row["SKU"];
+                      const sku = skuCol ? row[skuCol] : null;
                       if (sku && typeof sku === 'string' && sku.trim().length > 0) {
                         // We found a row with BOTH Campaign Name and SKU!
                         // Extract Product Name using your logic
@@ -6571,492 +7688,518 @@
 
           /* --- UPDATED: Download Bulk (With 3 Bidding Strategies & Modifier) --- */
           function downloadBulkWorkbook() {
-            // Reset renamed campaigns list for this export
-            renamedCampaignsList = [];
-
-            const includeSP = !!toggleExportSP.checked;
-            const includeSBV = !!toggleExportSBV.checked;
-            if (!includeSP && !includeSBV) {
-              bulkStatus.textContent = "❌ Select SP and/or SBV to export.";
-              bulkStatus.className = "text-error";
+            // Check for library availability first
+            if (typeof XLSX === 'undefined') {
+              const msg = "CRITICAL ERROR: The export library (SheetJS) failed to load. Please refresh the page.";
+              alert(msg);
+              if (bulkStatus) {
+                bulkStatus.textContent = "❌ Error: Library Missing";
+                bulkStatus.className = "text-error";
+              }
               return;
             }
 
-            // Validate start date
-            if (!validateDateInput()) {
-              bulkStatus.textContent = "❌ Please fix the start date error before exporting.";
-              bulkStatus.className = "text-error";
-              document.getElementById('bulkStartDate').scrollIntoView({ behavior: 'smooth', block: 'center' });
-              return;
-            }
+            try {
+              console.log("Starting Bulk Export Process...");
 
-            // Convert ISO date (YYYY-MM-DD) to YYYYMMDD format
-            let startDate = (bulkStartDate.value || "").trim();
-            if (startDate) {
-              startDate = startDate.replace(/-/g, '');
-            } else {
-              startDate = formatTodayYYYYMMDD();
-            }
+              // Reset renamed campaigns list for this export
+              renamedCampaignsList = [];
 
-            const state = (bulkState.value || "Enabled").trim().toLowerCase(); // enabled/paused
-            const spState = (state === "paused") ? "paused" : "enabled";
+              const includeSP = !!toggleExportSP.checked;
+              const includeSBV = !!toggleExportSBV.checked;
+              if (!includeSP && !includeSBV) {
+                bulkStatus.textContent = "❌ Select SP and/or SBV to export.";
+                bulkStatus.className = "text-error";
+                return;
+              }
 
-            const spBiddingStrategy = (document.getElementById("spBiddingStrategy")?.value || "Fixed bids").trim();
+              // Validate start date
+              if (!validateDateInput()) {
+                bulkStatus.textContent = "❌ Please fix the start date error before exporting.";
+                bulkStatus.className = "text-error";
+                document.getElementById('bulkStartDate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+              }
 
-            // NEW: Bidding Strategy - Always use Source CPC from data
-            const strategy = "sourceCpc"; // Force Source CPC - no fallback
-            const modifierPct = parseFloat(document.getElementById('spBidModifier')?.value || "0");
-            const modifierMult = 1 + (modifierPct / 100);
+              // Convert ISO date (YYYY-MM-DD) to YYYYMMDD format
+              let startDate = (bulkStartDate.value || "").trim();
+              if (startDate) {
+                startDate = startDate.replace(/-/g, '');
+              } else {
+                startDate = formatTodayYYYYMMDD();
+              }
 
-            // SB Global Inputs
-            const brandEntityId = (bulkBrandEntityId.value || "").trim();
-            // This is now specific to SBV, as requested
-            const sbPortfolioId = (bulkPortfolioId.value || "").trim();
-            const bidOptimization = (bulkBidOpt.value || "true") === "true"; // boolean
+              const state = (bulkState.value || "Enabled").trim().toLowerCase(); // enabled/paused
+              const spState = (state === "paused") ? "paused" : "enabled";
 
-            // SP Specific Portfolio ID (NEW)
-            const spPortfolioId = (document.getElementById('opt1_spPortfolioId')?.value || "").trim();
+              const spBiddingStrategy = (document.getElementById("spBiddingStrategy")?.value || "Fixed bids").trim();
 
-            // Per-bucket limits (SP)
-            const limBroad = numVal(document.getElementById("kwPerCampBroad"), 10);
-            const limPhrase = numVal(document.getElementById("kwPerCampPhrase"), 10);
-            const limExact = numVal(document.getElementById("kwPerCampExact"), 10);
-            const limPT = numVal(document.getElementById("ptPerCamp"), 10);
+              // NEW: Bidding Strategy - Always use Source CPC from data
+              const strategy = "sourceCpc"; // Force Source CPC - no fallback
+              const modifierPct = parseFloat(document.getElementById('spBidModifier')?.value || "0");
+              const modifierMult = 1 + (modifierPct / 100);
 
-            // Per-bucket limits (SBV)
-            const sbvLimBroad = numVal(document.getElementById("sbvPerCampBroad"), 10);
-            const sbvLimPhrase = numVal(document.getElementById("sbvPerCampPhrase"), 10);
-            const sbvLimExact = numVal(document.getElementById("sbvPerCampExact"), 10);
+              // SB Global Inputs
+              const brandEntityId = (bulkBrandEntityId.value || "").trim();
+              // This is now specific to SBV, as requested
+              const sbPortfolioId = (bulkPortfolioId.value || "").trim();
+              const bidOptimization = (bulkBidOpt.value || "true") === "true"; // boolean
 
-            const wb = XLSX.utils.book_new();
+              // SP Specific Portfolio ID (NEW)
+              const spPortfolioId = (document.getElementById('opt1_spPortfolioId')?.value || "").trim();
 
-            // --- Shared Bidding Helpers ---
+              // Per-bucket limits (SP)
+              const limBroad = numVal(document.getElementById("kwPerCampBroad"), 10);
+              const limPhrase = numVal(document.getElementById("kwPerCampPhrase"), 10);
+              const limExact = numVal(document.getElementById("kwPerCampExact"), 10);
+              const limPT = numVal(document.getElementById("ptPerCamp"), 10);
 
-            // 1. Get Product Avg CPC
-            function getProdAvg(groupData, prod, buck) {
-              const rows = groupData[prod]?.[buck]?.final || [];
-              if (!rows.length) return null;
-              let tot = 0, cnt = 0;
-              rows.forEach(r => {
-                const k = r["Extra KPIs"] || {};
+              // Per-bucket limits (SBV)
+              const sbvLimBroad = numVal(document.getElementById("sbvPerCampBroad"), 10);
+              const sbvLimPhrase = numVal(document.getElementById("sbvPerCampPhrase"), 10);
+              const sbvLimExact = numVal(document.getElementById("sbvPerCampExact"), 10);
+
+              const wb = XLSX.utils.book_new();
+
+              // --- Shared Bidding Helpers ---
+
+              // 1. Get Product Avg CPC
+              function getProdAvg(groupData, prod, buck) {
+                const rows = groupData[prod]?.[buck]?.final || [];
+                if (!rows.length) return null;
+                let tot = 0, cnt = 0;
+                rows.forEach(r => {
+                  const k = r["Extra KPIs"] || {};
+                  let c = toNum(k["CPC"]);
+                  if (isNaN(c) || c <= 0) { const s = toNum(k["Spend"]); const cl = toNum(k["Clicks"]); if (s > 0 && cl > 0) c = s / cl; }
+                  if (!isNaN(c) && c > 0) { tot += c; cnt++; }
+                });
+                return cnt === 0 ? null : (tot / cnt);
+              }
+
+              // 2. Get Specific Source CPC for a term
+              function getSourceCpc(groupData, prod, buck, termValue) {
+                const rows = groupData[prod]?.[buck]?.final || [];
+                // Find the exact row that generated this term
+                const row = rows.find(r => (r["Suggested Value"] === termValue || r["Customer Search Term"] === termValue));
+                if (!row) return null;
+
+                const k = row["Extra KPIs"] || {};
                 let c = toNum(k["CPC"]);
-                if (isNaN(c) || c <= 0) { const s = toNum(k["Spend"]); const cl = toNum(k["Clicks"]); if (s > 0 && cl > 0) c = s / cl; }
-                if (!isNaN(c) && c > 0) { tot += c; cnt++; }
-              });
-              return cnt === 0 ? null : (tot / cnt);
-            }
-
-            // 2. Get Specific Source CPC for a term
-            function getSourceCpc(groupData, prod, buck, termValue) {
-              const rows = groupData[prod]?.[buck]?.final || [];
-              // Find the exact row that generated this term
-              const row = rows.find(r => (r["Suggested Value"] === termValue || r["Customer Search Term"] === termValue));
-              if (!row) return null;
-
-              const k = row["Extra KPIs"] || {};
-              let c = toNum(k["CPC"]);
-              // Fallback calc
-              if (isNaN(c) || c <= 0) {
-                const s = toNum(k["Spend"]);
-                const cl = toNum(k["Clicks"]);
-                if (s > 0 && cl > 0) c = s / cl;
-              }
-              return (isNaN(c) || c <= 0) ? null : c;
-            }
-
-            // 3. Master Calculator
-            function calculateBid(dataset, product, bucket, term, fallbackBid) {
-              let final = fallbackBid;
-
-              // Strategy A: Product Avg
-              if (strategy === "productAvg") {
-                const avg = getProdAvg(dataset, product, bucket);
-                if (avg) final = avg;
-              }
-              // Strategy B: Source CPC (Individual + Modifier)
-              else if (strategy === "sourceCpc") {
-                const src = getSourceCpc(dataset, product, bucket, term);
-                if (src) {
-                  final = src * modifierMult; // Apply +10% or -5% etc
+                // Fallback calc
+                if (isNaN(c) || c <= 0) {
+                  const s = toNum(k["Spend"]);
+                  const cl = toNum(k["Clicks"]);
+                  if (s > 0 && cl > 0) c = s / cl;
                 }
+                return (isNaN(c) || c <= 0) ? null : c;
               }
 
-              return parseFloat(final).toFixed(2);
-            }
+              // 3. Master Calculator
+              function calculateBid(dataset, product, bucket, term, fallbackBid) {
+                let final = fallbackBid;
 
-            // ============= Sponsored Products Bulk (Dynamic Smart Bids) =============
-            if (includeSP) {
-              const header = [
-                "Product", "Entity", "Operation",
-                "Campaign Id", "Ad Group Id", "Portfolio Id", "Ad Id", "Keyword Id", "Product Targeting Id",
-                "Campaign Name", "Ad Group Name",
-                "Start Date", "End Date", "Targeting Type", "State",
-                "Daily Budget", "SKU", "ASIN",
-                "Ad Group Default Bid", "Bid", "Keyword Text", "Match Type",
-                "Bidding Strategy", "Placement", "Percentage",
-                "Product Targeting Expression", "Audience ID", "Shopper Cohort Percentage", "Shopper Cohort Type"
-              ];
-
-              const sheet = [header];
-              const skuMapOpt1 = getOpt1SkuMap();
-              const products = Object.keys(lastGroupedSP || {}).sort();
-
-              // --- Campaign Writer ---
-              function writeSpCampaignBundle(product, matchLabel, campaignName, items, isPT) {
-                const adGroupName = campaignName;
-                let spBudget, spDefaultBid, spAsinBid, sku;
-
-                // Get User Inputs (Fallbacks)
-                if (bulkMode === "opt1") {
-                  spBudget = numVal(opt1_spBudget, 100);
-                  spDefaultBid = numVal(opt1_spDefaultBid, 0.75);
-                  spAsinBid = numVal(document.getElementById('opt1_spBidAsin'), 0.75);
-                  sku = (skuMapOpt1[product] || "").trim();
-                } else {
-                  const prof = productProfiles[product] || {};
-                  spBudget = prof.spBudget || 100;
-                  spDefaultBid = 0.75; spAsinBid = 0.75;
-                  sku = (prof.spSku || "").trim();
+                // Strategy A: Product Avg
+                if (strategy === "productAvg") {
+                  const avg = getProdAvg(dataset, product, bucket);
+                  if (avg) final = avg;
+                }
+                // Strategy B: Source CPC (Individual + Modifier)
+                else if (strategy === "sourceCpc") {
+                  const src = getSourceCpc(dataset, product, bucket, term);
+                  if (src) {
+                    final = src * modifierMult; // Apply +10% or -5% etc
+                  }
                 }
 
-                // Fallback bid: Ad Group Default Bid (Source CPC used when available)\r\n                let fallbackBid = spDefaultBid;
+                return parseFloat(final).toFixed(2);
+              }
 
-                // Campaign Row
-                sheet.push([
-                  "Sponsored Products", "Campaign", "Create",
-                  campaignName, "", spPortfolioId, "", "", "",
-                  campaignName, "",
-                  startDate, "", "Manual", spState,
-                  spBudget, "", "",
-                  "", "", "", "",
-                  spBiddingStrategy, "", "",
-                  "", "", "", ""
-                ]);
+              // ============= Sponsored Products Bulk (Dynamic Smart Bids) =============
+              if (includeSP) {
+                const header = [
+                  "Product", "Entity", "Operation",
+                  "Campaign Id", "Ad Group Id", "Portfolio Id", "Ad Id", "Keyword Id", "Product Targeting Id",
+                  "Campaign Name", "Ad Group Name",
+                  "Start Date", "End Date", "Targeting Type", "State",
+                  "Daily Budget", "SKU", "ASIN",
+                  "Ad Group Default Bid", "Bid", "Keyword Text", "Match Type",
+                  "Bidding Strategy", "Placement", "Percentage",
+                  "Product Targeting Expression", "Audience ID", "Shopper Cohort Percentage", "Shopper Cohort Type"
+                ];
 
-                // Ad Group Row
-                sheet.push([
-                  "Sponsored Products", "Ad group", "Create",
-                  campaignName, adGroupName, "", "", "", "",
-                  campaignName, adGroupName,
-                  "", "", "", spState,
-                  "", "", "",
-                  fallbackBid, "", "", "", // Default bid
-                  "", "", "", "",
-                  "", "", "", ""
-                ]);
+                const sheet = [header];
+                const skuMapOpt1 = getOpt1SkuMap();
+                const products = Object.keys(lastGroupedSP || {}).sort();
 
-                // Product Ad Row
-                if (sku) {
+                // --- Campaign Writer ---
+                function writeSpCampaignBundle(product, matchLabel, campaignName, items, isPT) {
+                  const adGroupName = campaignName;
+                  let spBudget, spDefaultBid, spAsinBid, sku;
+
+                  // Get User Inputs (Fallbacks)
+                  if (bulkMode === "opt1") {
+                    spBudget = numVal(opt1_spBudget, 100);
+                    spDefaultBid = numVal(opt1_spDefaultBid, 0.75);
+                    spAsinBid = numVal(document.getElementById('opt1_spBidAsin'), 0.75);
+                    sku = (skuMapOpt1[product] || "").trim();
+                  } else {
+                    const prof = productProfiles[product] || {};
+                    spBudget = prof.spBudget || 100;
+                    spDefaultBid = 0.75; spAsinBid = 0.75;
+                    sku = (prof.spSku || "").trim();
+                  }
+
+                  // FIXED: Explicitly declare fallbackBid to prevent crash (ignoring the malformed line below)
+                  let fallbackBid = spDefaultBid;
+
+                  // Fallback bid: Ad Group Default Bid (Source CPC used when available)\r\n                let fallbackBid = spDefaultBid;
+
+                  // Campaign Row
                   sheet.push([
-                    "Sponsored Products", "Product ad", "Create",
+                    "Sponsored Products", "Campaign", "Create",
+                    campaignName, "", spPortfolioId, "", "", "",
+                    campaignName, "",
+                    startDate, "", "Manual", spState,
+                    spBudget, "", "",
+                    "", "", "", "",
+                    spBiddingStrategy, "", "",
+                    "", "", "", ""
+                  ]);
+
+                  // Ad Group Row
+                  sheet.push([
+                    "Sponsored Products", "Ad group", "Create",
                     campaignName, adGroupName, "", "", "", "",
                     campaignName, adGroupName,
                     "", "", "", spState,
-                    "", "" + sku, "",
-                    "", "", "", "",
+                    "", "", "",
+                    fallbackBid, "", "", "", // Default bid
                     "", "", "", "",
                     "", "", "", ""
                   ]);
-                }
 
-                if (isPT) {
-                  items.forEach(val => {
-                    const asin = val.toString().trim();
-                    if (!asin) return;
-
-                    // CALCULATE BID for this specific ASIN
-                    const finalBid = calculateBid(lastGroupedSP, product, "ASIN", asin, fallbackBid);
-
+                  // Product Ad Row
+                  if (sku) {
                     sheet.push([
-                      "Sponsored Products", "Product targeting", "Create",
+                      "Sponsored Products", "Product ad", "Create",
                       campaignName, adGroupName, "", "", "", "",
                       campaignName, adGroupName,
                       "", "", "", spState,
-                      "", "", "",
-                      "", "" + finalBid, "", "",  // Cols 18, 19, 20, 21
-                      "", "", "",               // Cols 22, 23, 24
-                      `asin="${asin}"`, "", "", "" // Col 25 (Correct placement), 26, 27, 28
-                    ]);
-                  });
-                } else {
-                  items.forEach(term => {
-                    // CALCULATE BID for this specific keyword
-                    const finalBid = calculateBid(lastGroupedSP, product, matchLabel, term, fallbackBid);
-
-                    sheet.push([
-                      "Sponsored Products", "Keyword", "Create",
-                      campaignName, adGroupName, "", "", "", "",
-                      campaignName, adGroupName,
-                      "", "", "", spState,
-                      "", "", "",
-                      "", finalBid, term, matchLabel, // Uses calculated bid
-                      "", "", "",
+                      "", "" + sku, "",
+                      "", "", "", "",
+                      "", "", "", "",
                       "", "", "", ""
                     ]);
-                  });
-                }
-              }
-
-              for (const product of products) {
-                const campTpl = (bulkMode === "opt1")
-                  ? strVal(opt1_spCampTpl, "{Product} | SP | {Match} | Harvested")
-                  : ((productProfiles[product]?.campTpl) || "{Product} | SP | {Match} | Harvested");
-
-                // Gather lists
-                const kwBroad = (lastGroupedSP?.[product]?.["Broad"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
-                const kwPhrase = (lastGroupedSP?.[product]?.["Phrase"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
-                const kwExact = (lastGroupedSP?.[product]?.["Exact"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
-                const asins = (lastGroupedSP?.[product]?.["ASIN"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
-
-                const baseVars = { Product: product, Base: product };
-
-                // Process Keywords (Broad, Phrase, Exact)
-                [["Broad", kwBroad, limBroad], ["Phrase", kwPhrase, limPhrase], ["Exact", kwExact, limExact]].forEach(([bucket, list, lim]) => {
-                  if (!list.length) return;
-
-                  const vars = { ...baseVars, Match: bucket };
-                  let rawBaseName = applyTemplate(campTpl, vars);
-
-                  // --- DEDUPLICATION LOGIC START ---
-                  // If "Hat | Harvested" exists, this returns "Hat | Harvested 1"
-                  const uniqueRootName = getUniqueCampaignName(rawBaseName);
-                  // ---------------------------------
-
-                  const chunks = chunkArray(list, lim);
-                  chunks.forEach((chunk, idx) => {
-                    // If we split into multiple campaigns (limit exceeded), we append | 1, | 2
-                    // Result: "Hat | Harvested 1 | 1"
-                    const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const finalCampName = uniqueRootName + suffix;
-
-                    writeSpCampaignBundle(product, bucket, finalCampName, chunk, false);
-                  });
-                });
-
-                // Process Product Targeting (ASIN)
-                if (asins.length) {
-                  const vars = { ...baseVars, Match: "PT" };
-                  let rawBaseName = applyTemplate(campTpl, vars);
-
-                  // --- DEDUPLICATION LOGIC START ---
-                  const uniqueRootName = getUniqueCampaignName(rawBaseName);
-                  // ---------------------------------
-
-                  const chunks = chunkArray(asins, limPT);
-                  chunks.forEach((chunk, idx) => {
-                    const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const finalCampName = uniqueRootName + suffix;
-                    writeSpCampaignBundle(product, "PT", finalCampName, chunk, true);
-                  });
-                }
-              }
-
-              const ws = XLSX.utils.aoa_to_sheet(sheet);
-              XLSX.utils.book_append_sheet(wb, ws, "SP Bulk");
-            }
-
-            // ============= SBV (Enhanced with SB Generator Fields) =============
-            if (includeSBV) {
-
-              const sbvHeader = [
-                'Product', 'Entity', 'Operation', 'Campaign ID', 'Portfolio ID', 'Ad Group ID', 'Ad ID',
-                'Keyword ID', 'Product Targeting ID', 'Campaign Name', 'Ad Group Name', 'Ad Name',
-                'Start Date', 'End Date', 'State', 'Brand Entity ID', 'Budget Type', 'Budget',
-                'Bid Optimization', 'Product Location', 'Bid', 'Placement', 'Percentage', 'Keyword Text',
-                'Match Type', 'Native Language Keyword', 'Native Language Locale', 'Product Targeting Expression',
-                'Landing Page URL', 'Landing Page ASINs', 'Landing Page Type', 'Brand Name',
-                'Consent To Translate', 'Brand Logo Asset ID', 'Brand Logo Crop', 'Custom Images',
-                'Creative Headline', 'Creative ASINs', 'Video Asset IDs', 'Sub-pages'
-              ];
-
-              const sbvSheet = [sbvHeader];
-
-              function rowFromMap(map) {
-                return sbvHeader.map(h => (map[h] !== undefined ? map[h] : ""));
-              }
-
-              const groups = lastGroupedSB || {};
-              const skuMapOpt1 = getOpt1SkuMap();
-
-              Object.keys(groups).sort().forEach(product => {
-                const obj = groups[product] || {};
-
-                // Loop through each match type
-                ["Broad", "Phrase", "Exact"].forEach(bucket => {
-                  const finals = obj[bucket]?.final || [];
-                  if (!finals.length) return;
-
-                  // Determine limit for this bucket
-                  let limit = 10;
-                  if (bucket === "Broad") limit = sbvLimBroad;
-                  if (bucket === "Phrase") limit = sbvLimPhrase;
-                  if (bucket === "Exact") limit = sbvLimExact;
-
-                  // Inputs
-                  const video = (bulkMode === "opt1")
-                    ? strVal(opt1_sbvVideo, "amzn1.assetlibrary...")
-                    : (productProfiles[product]?.sbvVideo || "amzn1.assetlibrary...");
-
-                  const creativeAsin = (bulkMode === "opt1")
-                    ? strVal(document.getElementById('opt1_sbvAsin'), "")
-                    : (productProfiles[product]?.sbvAsin || "");
-                  const finalCreativeAsin = creativeAsin;
-
-                  const budget = (bulkMode === "opt1")
-                    ? numVal(opt1_sbvBudget, 50)
-                    : (productProfiles[product]?.sbvBudget ?? 50);
-
-                  // Determine Fallback Bid for this bucket
-                  let bucketFallback = 0.80;
-                  if (bulkMode === "opt1") {
-                    bucketFallback = sbvBidForBucket(bucket);
-                  } else {
-                    bucketFallback = (productProfiles[product]?.sbvBid ?? 0.80);
                   }
 
-                  // Get valid terms
-                  const allTerms = finals
-                    .map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim())
-                    .filter(Boolean);
+                  if (isPT) {
+                    items.forEach(val => {
+                      const asin = val.toString().trim();
+                      if (!asin) return;
 
-                  if (!allTerms.length) return;
+                      // CALCULATE BID for this specific ASIN
+                      const finalBid = calculateBid(lastGroupedSP, product, "ASIN", asin, fallbackBid);
 
-                  // SPLIT LOGIC (Chunking)
-                  const chunks = chunkArray(allTerms, limit);
-
-                  chunks.forEach((chunkTerms, idx) => {
-                    // Names
-                    let campName;
-                    if (bulkMode === "opt1") {
-                      const vars = { Product: product, Base: product, Match: bucket, Video: video };
-                      const baseName = applyTemplate(strVal(opt1_sbvCampTpl, "{Product} | SBV | {Video} | {Match}"), vars);
-                      // Append suffix if multiple chunks
-                      campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
-                    } else {
-                      const baseName = `${product} | SBV | ${video} | ${bucket}`;
-                      campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
-                    }
-                    const agName = campName;
-
-                    // Generate a timestamped Ad Name
-                    const adName = `Video ad - ${new Date().toLocaleDateString()}`;
-
-                    // --- Campaign row ---
-                    sbvSheet.push(rowFromMap({
-                      "Product": "Sponsored Brands",
-                      "Entity": "Campaign",
-                      "Operation": "Create",
-                      "Campaign ID": campName,
-                      "Campaign Name": campName,
-                      "Portfolio ID": sbPortfolioId, // Uses SB specific Portfolio ID
-                      "Start Date": startDate,
-                      "State": (spState === "paused" ? "paused" : "enabled"),
-                      "Budget Type": "Daily",
-                      "Budget": budget,
-                      "Bid Optimization": bidOptimization,
-                      "Brand Entity ID": brandEntityId
-                    }));
-
-                    // --- Ad group row ---
-                    sbvSheet.push(rowFromMap({
-                      "Product": "Sponsored Brands",
-                      "Entity": "Ad Group",
-                      "Operation": "Create",
-                      "Campaign ID": campName,
-                      "Ad Group ID": agName,
-                      "Campaign Name": campName,
-                      "Ad Group Name": agName,
-                      "State": (spState === "paused" ? "paused" : "enabled")
-                    }));
-
-                    // --- Ad (video) row ---
-                    sbvSheet.push(rowFromMap({
-                      "Product": "Sponsored Brands",
-                      "Entity": "Video ad",
-                      "Operation": "Create",
-                      "Campaign ID": campName,
-                      "Ad Group ID": agName,
-                      "Ad Name": adName,
-                      "Campaign Name": campName,
-                      "Ad Group Name": agName,
-                      "State": (spState === "paused" ? "paused" : "enabled"),
-                      "Video Asset IDs": video,
-                      "Creative ASINs": finalCreativeAsin,
-                      "Landing Page URL": finalCreativeAsin ? `https://www.amazon.com/dp/${finalCreativeAsin}` : "",
-                      "Landing Page Type": "Detail Page",
-                      "Brand Entity ID": brandEntityId
-                    }));
-
-                    // --- Keyword rows (chunked) ---
-                    chunkTerms.forEach(term => {
+                      sheet.push([
+                        "Sponsored Products", "Product targeting", "Create",
+                        campaignName, adGroupName, "", "", "", "",
+                        campaignName, adGroupName,
+                        "", "", "", spState,
+                        "", "", "",
+                        "", "" + finalBid, "", "",  // Cols 18, 19, 20, 21
+                        "", "", "",               // Cols 22, 23, 24
+                        `asin="${asin}"`, "", "", "" // Col 25 (Correct placement), 26, 27, 28
+                      ]);
+                    });
+                  } else {
+                    items.forEach(term => {
                       // CALCULATE BID for this specific keyword
-                      const finalBid = calculateBid(lastGroupedSB, product, bucket, term, bucketFallback);
+                      const finalBid = calculateBid(lastGroupedSP, product, matchLabel, term, fallbackBid);
 
+                      sheet.push([
+                        "Sponsored Products", "Keyword", "Create",
+                        campaignName, adGroupName, "", "", "", "",
+                        campaignName, adGroupName,
+                        "", "", "", spState,
+                        "", "", "",
+                        "", finalBid, term, matchLabel, // Uses calculated bid
+                        "", "", "",
+                        "", "", "", ""
+                      ]);
+                    });
+                  }
+                }
+
+                for (const product of products) {
+                  const campTpl = (bulkMode === "opt1")
+                    ? strVal(opt1_spCampTpl, "{Product} | SP | {Match} | Harvested")
+                    : ((productProfiles[product]?.campTpl) || "{Product} | SP | {Match} | Harvested");
+
+                  // Gather lists
+                  const kwBroad = (lastGroupedSP?.[product]?.["Broad"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
+                  const kwPhrase = (lastGroupedSP?.[product]?.["Phrase"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
+                  const kwExact = (lastGroupedSP?.[product]?.["Exact"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
+                  const asins = (lastGroupedSP?.[product]?.["ASIN"]?.final || []).map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
+
+                  const baseVars = { Product: product, Base: product };
+
+                  // Process Keywords (Broad, Phrase, Exact)
+                  [["Broad", kwBroad, limBroad], ["Phrase", kwPhrase, limPhrase], ["Exact", kwExact, limExact]].forEach(([bucket, list, lim]) => {
+                    if (!list.length) return;
+
+                    const vars = { ...baseVars, Match: bucket };
+                    let rawBaseName = applyTemplate(campTpl, vars);
+
+                    // --- DEDUPLICATION LOGIC START ---
+                    // If "Hat | Harvested" exists, this returns "Hat | Harvested 1"
+                    const uniqueRootName = getUniqueCampaignName(rawBaseName);
+                    // ---------------------------------
+
+                    const chunks = chunkArray(list, lim);
+                    chunks.forEach((chunk, idx) => {
+                      // If we split into multiple campaigns (limit exceeded), we append | 1, | 2
+                      // Result: "Hat | Harvested 1 | 1"
+                      const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
+                      const finalCampName = uniqueRootName + suffix;
+
+                      writeSpCampaignBundle(product, bucket, finalCampName, chunk, false);
+                    });
+                  });
+
+                  // Process Product Targeting (ASIN)
+                  if (asins.length) {
+                    const vars = { ...baseVars, Match: "PT" };
+                    let rawBaseName = applyTemplate(campTpl, vars);
+
+                    // --- DEDUPLICATION LOGIC START ---
+                    const uniqueRootName = getUniqueCampaignName(rawBaseName);
+                    // ---------------------------------
+
+                    const chunks = chunkArray(asins, limPT);
+                    chunks.forEach((chunk, idx) => {
+                      const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
+                      const finalCampName = uniqueRootName + suffix;
+                      writeSpCampaignBundle(product, "PT", finalCampName, chunk, true);
+                    });
+                  }
+                }
+
+                const ws = XLSX.utils.aoa_to_sheet(sheet);
+                XLSX.utils.book_append_sheet(wb, ws, "SP Bulk");
+              }
+
+              // ============= SBV (Enhanced with SB Generator Fields) =============
+              if (includeSBV) {
+
+                const sbvHeader = [
+                  'Product', 'Entity', 'Operation', 'Campaign ID', 'Portfolio ID', 'Ad Group ID', 'Ad ID',
+                  'Keyword ID', 'Product Targeting ID', 'Campaign Name', 'Ad Group Name', 'Ad Name',
+                  'Start Date', 'End Date', 'State', 'Brand Entity ID', 'Budget Type', 'Budget',
+                  'Bid Optimization', 'Product Location', 'Bid', 'Placement', 'Percentage', 'Keyword Text',
+                  'Match Type', 'Native Language Keyword', 'Native Language Locale', 'Product Targeting Expression',
+                  'Landing Page URL', 'Landing Page ASINs', 'Landing Page Type', 'Brand Name',
+                  'Consent To Translate', 'Brand Logo Asset ID', 'Brand Logo Crop', 'Custom Images',
+                  'Creative Headline', 'Creative ASINs', 'Video Asset IDs', 'Sub-pages'
+                ];
+
+                const sbvSheet = [sbvHeader];
+
+                function rowFromMap(map) {
+                  return sbvHeader.map(h => (map[h] !== undefined ? map[h] : ""));
+                }
+
+                const groups = lastGroupedSB || {};
+                const skuMapOpt1 = getOpt1SkuMap();
+
+                Object.keys(groups).sort().forEach(product => {
+                  const obj = groups[product] || {};
+
+                  // Loop through each match type
+                  ["Broad", "Phrase", "Exact"].forEach(bucket => {
+                    const finals = obj[bucket]?.final || [];
+                    if (!finals.length) return;
+
+                    // Determine limit for this bucket
+                    let limit = 10;
+                    if (bucket === "Broad") limit = sbvLimBroad;
+                    if (bucket === "Phrase") limit = sbvLimPhrase;
+                    if (bucket === "Exact") limit = sbvLimExact;
+
+                    // Inputs
+                    const video = (bulkMode === "opt1")
+                      ? strVal(opt1_sbvVideo, "amzn1.assetlibrary...")
+                      : (productProfiles[product]?.sbvVideo || "amzn1.assetlibrary...");
+
+                    const creativeAsin = (bulkMode === "opt1")
+                      ? strVal(document.getElementById('opt1_sbvAsin'), "")
+                      : (productProfiles[product]?.sbvAsin || "");
+                    const finalCreativeAsin = creativeAsin;
+
+                    const budget = (bulkMode === "opt1")
+                      ? numVal(opt1_sbvBudget, 50)
+                      : (productProfiles[product]?.sbvBudget ?? 50);
+
+                    // Determine Fallback Bid for this bucket
+                    let bucketFallback = 0.80;
+                    if (bulkMode === "opt1") {
+                      bucketFallback = sbvBidForBucket(bucket);
+                    } else {
+                      bucketFallback = (productProfiles[product]?.sbvBid ?? 0.80);
+                    }
+
+                    // Get valid terms
+                    const allTerms = finals
+                      .map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim())
+                      .filter(Boolean);
+
+                    if (!allTerms.length) return;
+
+                    // SPLIT LOGIC (Chunking)
+                    const chunks = chunkArray(allTerms, limit);
+
+                    chunks.forEach((chunkTerms, idx) => {
+                      // Names
+                      let campName;
+                      if (bulkMode === "opt1") {
+                        const vars = { Product: product, Base: product, Match: bucket, Video: video };
+                        const baseName = applyTemplate(strVal(opt1_sbvCampTpl, "{Product} | SBV | {Video} | {Match}"), vars);
+                        // Append suffix if multiple chunks
+                        campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
+                      } else {
+                        const baseName = `${product} | SBV | ${video} | ${bucket}`;
+                        campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
+                      }
+                      const agName = campName;
+
+                      // Generate a timestamped Ad Name
+                      const adName = `Video ad - ${new Date().toLocaleDateString()}`;
+
+                      // --- Campaign row ---
                       sbvSheet.push(rowFromMap({
                         "Product": "Sponsored Brands",
-                        "Entity": "Keyword",
+                        "Entity": "Campaign",
+                        "Operation": "Create",
+                        "Campaign ID": campName,
+                        "Campaign Name": campName,
+                        "Portfolio ID": sbPortfolioId, // Uses SB specific Portfolio ID
+                        "Start Date": startDate,
+                        "State": (spState === "paused" ? "paused" : "enabled"),
+                        "Budget Type": "Daily",
+                        "Budget": budget,
+                        "Bid Optimization": bidOptimization,
+                        "Brand Entity ID": brandEntityId
+                      }));
+
+                      // --- Ad group row ---
+                      sbvSheet.push(rowFromMap({
+                        "Product": "Sponsored Brands",
+                        "Entity": "Ad Group",
                         "Operation": "Create",
                         "Campaign ID": campName,
                         "Ad Group ID": agName,
                         "Campaign Name": campName,
                         "Ad Group Name": agName,
-                        "State": (spState === "paused" ? "paused" : "enabled"),
-                        "Bid": finalBid,
-                        "Keyword Text": term,
-                        "Match Type": bucket
+                        "State": (spState === "paused" ? "paused" : "enabled")
                       }));
+
+                      // --- Ad (video) row ---
+                      sbvSheet.push(rowFromMap({
+                        "Product": "Sponsored Brands",
+                        "Entity": "Video ad",
+                        "Operation": "Create",
+                        "Campaign ID": campName,
+                        "Ad Group ID": agName,
+                        "Ad Name": adName,
+                        "Campaign Name": campName,
+                        "Ad Group Name": agName,
+                        "State": (spState === "paused" ? "paused" : "enabled"),
+                        "Video Asset IDs": video,
+                        "Creative ASINs": finalCreativeAsin,
+                        "Landing Page URL": finalCreativeAsin ? `https://www.amazon.com/dp/${finalCreativeAsin}` : "",
+                        "Landing Page Type": "Detail Page",
+                        "Brand Entity ID": brandEntityId
+                      }));
+
+                      // --- Keyword rows (chunked) ---
+                      chunkTerms.forEach(term => {
+                        // CALCULATE BID for this specific keyword
+                        const finalBid = calculateBid(lastGroupedSB, product, bucket, term, bucketFallback);
+
+                        sbvSheet.push(rowFromMap({
+                          "Product": "Sponsored Brands",
+                          "Entity": "Keyword",
+                          "Operation": "Create",
+                          "Campaign ID": campName,
+                          "Ad Group ID": agName,
+                          "Campaign Name": campName,
+                          "Ad Group Name": agName,
+                          "State": (spState === "paused" ? "paused" : "enabled"),
+                          "Bid": finalBid,
+                          "Keyword Text": term,
+                          "Match Type": bucket
+                        }));
+                      });
                     });
                   });
                 });
-              });
 
-              const ws = XLSX.utils.aoa_to_sheet(sbvSheet);
-              XLSX.utils.book_append_sheet(wb, ws, "SBV Bulk");
-            }
+                const ws = XLSX.utils.aoa_to_sheet(sbvSheet);
+                XLSX.utils.book_append_sheet(wb, ws, "SBV Bulk");
+              }
 
-            XLSX.writeFile(wb, "TermHarvester_BulkUpload.xlsx");
+              XLSX.writeFile(wb, "TermHarvester_BulkUpload.xlsx");
 
-            // Display strategy used
-            let strategyName = "Fixed Bids";
-            if (strategy === "productAvg") strategyName = "Product Avg CPC";
-            else if (strategy === "sourceCpc") strategyName = `Source CPC (${modifierPct >= 0 ? '+' : ''}${modifierPct}%)`;
+              // Display strategy used
+              let strategyName = "Fixed Bids";
+              if (strategy === "productAvg") strategyName = "Product Avg CPC";
+              else if (strategy === "sourceCpc") strategyName = `Source CPC (${modifierPct >= 0 ? '+' : ''}${modifierPct}%)`;
 
-            bulkStatus.textContent = `✅ Exported using ${strategyName} strategy.`;
-            bulkStatus.className = "text-success";
+              bulkStatus.textContent = `✅ Exported using ${strategyName} strategy.`;
+              bulkStatus.className = "text-success";
 
-            // Calculate export summary
-            const products = [...(Object.keys(lastGroupedSP || {})), ...(Object.keys(lastGroupedSB || {}))];
-            const uniqueProducts = new Set(products);
+              // Calculate export summary
+              const products = [...(Object.keys(lastGroupedSP || {})), ...(Object.keys(lastGroupedSB || {}))];
+              const uniqueProducts = new Set(products);
 
-            let totalKeywords = 0;
-            let totalAsins = 0;
-            let totalCampaigns = 0;
+              let totalKeywords = 0;
+              let totalAsins = 0;
+              let totalCampaigns = 0;
 
-            if (includeSP && lastGroupedSP) {
-              Object.values(lastGroupedSP).forEach(prod => {
-                ['Broad', 'Phrase', 'Exact'].forEach(bucket => {
-                  const list = prod[bucket]?.final || [];
-                  totalKeywords += list.length;
-                  if (list.length > 0) totalCampaigns++;
+              if (includeSP && lastGroupedSP) {
+                Object.values(lastGroupedSP).forEach(prod => {
+                  ['Broad', 'Phrase', 'Exact'].forEach(bucket => {
+                    const list = prod[bucket]?.final || [];
+                    totalKeywords += list.length;
+                    if (list.length > 0) totalCampaigns++;
+                  });
+                  const asinList = prod['ASIN']?.final || [];
+                  totalAsins += asinList.length;
+                  if (asinList.length > 0) totalCampaigns++;
                 });
-                const asinList = prod['ASIN']?.final || [];
-                totalAsins += asinList.length;
-                if (asinList.length > 0) totalCampaigns++;
-              });
-            }
+              }
 
-            if (includeSBV && lastGroupedSB) {
-              Object.values(lastGroupedSB).forEach(prod => {
-                ['Broad', 'Phrase', 'Exact'].forEach(bucket => {
-                  const list = prod[bucket]?.final || [];
-                  totalKeywords += list.length;
-                  if (list.length > 0) totalCampaigns++;
+              if (includeSBV && lastGroupedSB) {
+                Object.values(lastGroupedSB).forEach(prod => {
+                  ['Broad', 'Phrase', 'Exact'].forEach(bucket => {
+                    const list = prod[bucket]?.final || [];
+                    totalKeywords += list.length;
+                    if (list.length > 0) totalCampaigns++;
+                  });
                 });
-              });
-            }
+              }
 
-            // Show success modal with renamed campaigns info
-            showSuccessModal(totalCampaigns, totalKeywords, totalAsins, strategyName, renamedCampaignsList);
+              // Show success modal with renamed campaigns info
+              showSuccessModal(totalCampaigns, totalKeywords, totalAsins, strategyName, renamedCampaignsList);
+
+            } catch (error) {
+              console.error("CRITICAL EXPORT ERROR:", error);
+              alert("An error occurred during export:\n" + error.message + "\n\nPlease check the console (F12) for full details.");
+              if (bulkStatus) {
+                bulkStatus.textContent = "❌ Export Failed: " + error.message;
+                bulkStatus.className = "text-error";
+              }
+            }
           }
 
           function showSuccessModal(campaigns, keywords, asins, strategy, renamedList) {
@@ -7711,7 +8854,85 @@ More shortcuts coming soon!`);
           }
 
           /* --- Popover Logic --- */
-          (function initHelpPopovers() { const pop = document.getElementById("helpPopover"); const popContent = document.getElementById("helpPopoverContent"); const arrow = pop.querySelector(".arrow"); let activeIcon = null; let hideTimer = null; function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); } function show(icon) { const wrap = icon.closest(".help-wrap"); if (!wrap) return; const localTooltip = wrap.querySelector(".help-tooltip"); if (!localTooltip) return; popContent.innerHTML = localTooltip.innerHTML; pop.style.display = "block"; pop.setAttribute("aria-hidden", "false"); const r = icon.getBoundingClientRect(); const margin = 10; const popR = pop.getBoundingClientRect(); const spaceBelow = window.innerHeight - r.bottom; const spaceAbove = r.top; let top; let place = "bottom"; if (spaceBelow >= popR.height + 14) { top = r.bottom + 10; place = "bottom"; } else if (spaceAbove >= popR.height + 14) { top = r.top - popR.height - 10; place = "top"; } else { if (spaceBelow >= spaceAbove) { top = r.bottom + 10; place = "bottom"; } else { top = r.top - popR.height - 10; place = "top"; } } let left = r.left - 6; left = clamp(left, margin, window.innerWidth - popR.width - margin); top = clamp(top, margin, window.innerHeight - popR.height - margin); pop.style.left = `${left}px`; pop.style.top = `${top}px`; const iconCenter = r.left + (r.width / 2); const arrowLeft = clamp(iconCenter - left - 5, 12, popR.width - 22); arrow.style.left = `${arrowLeft}px`; if (place === "top") { arrow.style.top = ""; arrow.style.bottom = "-5px"; } else { arrow.style.bottom = ""; arrow.style.top = "-5px"; } activeIcon = icon; } function hide() { pop.style.display = "none"; pop.setAttribute("aria-hidden", "true"); activeIcon = null; } document.addEventListener("mouseenter", (e) => { const icon = e.target.closest(".help-icon"); if (!icon) return; clearTimeout(hideTimer); show(icon); }, true); document.addEventListener("mouseleave", (e) => { const icon = e.target.closest(".help-icon"); if (!icon) return; hideTimer = setTimeout(hide, 120); }, true); pop.addEventListener("mouseenter", () => clearTimeout(hideTimer)); pop.addEventListener("mouseleave", () => hide()); document.addEventListener("click", (e) => { const icon = e.target.closest(".help-icon"); if (icon) { if (activeIcon === icon) hide(); else show(icon); e.preventDefault(); return; } if (!e.target.closest("#helpPopover")) hide(); }); window.addEventListener("scroll", () => { if (activeIcon) show(activeIcon); }, true); window.addEventListener("resize", () => { if (activeIcon) show(activeIcon); }); })();
+          (function initHelpPopovers() {
+            const pop = document.getElementById("helpPopover");
+            const popContent = document.getElementById("helpPopoverContent");
+            if (!pop || !popContent) return; // Safety check
+            const arrow = pop.querySelector(".arrow");
+            let activeIcon = null;
+            let hideTimer = null;
+
+            function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+            function show(icon) {
+              const wrap = icon.closest(".help-wrap");
+              if (!wrap) return;
+              const localTooltip = wrap.querySelector(".help-tooltip");
+              if (!localTooltip) return;
+              popContent.innerHTML = localTooltip.innerHTML;
+              pop.style.display = "block";
+              pop.setAttribute("aria-hidden", "false");
+              const r = icon.getBoundingClientRect();
+              const margin = 10;
+              const popR = pop.getBoundingClientRect();
+              const spaceBelow = window.innerHeight - r.bottom;
+              const spaceAbove = r.top;
+              let top;
+              let place = "bottom";
+              if (spaceBelow >= popR.height + 14) { top = r.bottom + 10; place = "bottom"; }
+              else if (spaceAbove >= popR.height + 14) { top = r.top - popR.height - 10; place = "top"; }
+              else { if (spaceBelow >= spaceAbove) { top = r.bottom + 10; place = "bottom"; } else { top = r.top - popR.height - 10; place = "top"; } }
+              let left = r.left - 6;
+              left = clamp(left, margin, window.innerWidth - popR.width - margin);
+              top = clamp(top, margin, window.innerHeight - popR.height - margin);
+              pop.style.left = `${left}px`;
+              pop.style.top = `${top}px`;
+              const iconCenter = r.left + (r.width / 2);
+              const arrowLeft = clamp(iconCenter - left - 5, 12, popR.width - 22);
+              if (arrow) arrow.style.left = `${arrowLeft}px`;
+              if (place === "top") { if (arrow) { arrow.style.top = ""; arrow.style.bottom = "-5px"; } }
+              else { if (arrow) { arrow.style.bottom = ""; arrow.style.top = "-5px"; } }
+              activeIcon = icon;
+            }
+
+            function hide() {
+              pop.style.display = "none";
+              pop.setAttribute("aria-hidden", "true");
+              activeIcon = null;
+            }
+
+            document.addEventListener("mouseenter", (e) => {
+              if (!(e.target instanceof Element)) return; // FIX: Check for Element
+              const icon = e.target.closest(".help-icon");
+              if (!icon) return;
+              clearTimeout(hideTimer);
+              show(icon);
+            }, true);
+
+            document.addEventListener("mouseleave", (e) => {
+              if (!(e.target instanceof Element)) return; // FIX: Check for Element
+              const icon = e.target.closest(".help-icon");
+              if (!icon) return;
+              hideTimer = setTimeout(hide, 120);
+            }, true);
+
+            pop.addEventListener("mouseenter", () => clearTimeout(hideTimer));
+            pop.addEventListener("mouseleave", () => hide());
+
+            document.addEventListener("click", (e) => {
+              if (!(e.target instanceof Element)) return; // FIX: Check for Element
+              const icon = e.target.closest(".help-icon");
+              if (icon) {
+                if (activeIcon === icon) hide(); else show(icon);
+                e.preventDefault();
+                return;
+              }
+              if (!e.target.closest("#helpPopover")) hide();
+            });
+
+            window.addEventListener("scroll", () => { if (activeIcon) show(activeIcon); }, true);
+            window.addEventListener("resize", () => { if (activeIcon) show(activeIcon); });
+          })();
 
           // --- Step Progress Management ---
           let currentStep = 1;
@@ -8256,14 +9477,18 @@ More shortcuts coming soon!`);
           }
 
           function confirmAndDownloadBulk() {
+            console.log("User confirmed bulk download from preview.");
             closeBulkPreview();
-            // Now trigger the actual download
-            try {
-              downloadBulkWorkbook();
-            } catch (e) {
-              console.error(e);
-              if (bulkStatus) bulkStatus.textContent = "Export failed. Check console.";
-            }
+
+            // Short delay to allow modal to close smoothly before heavy operation
+            setTimeout(() => {
+              try {
+                downloadBulkWorkbook();
+              } catch (e) {
+                console.error("Error invoking download:", e);
+                alert("Failed to start download: " + e.message);
+              }
+            }, 100);
           }
 
           function generateBulkPreviewData() {
@@ -9844,6 +11069,167 @@ More shortcuts coming soon!`);
           });
 
           // Add keyboard shortcut for dark mode toggle (D key)
+
+          // --- Journey Viewer (Moved to Global Scope) ---
+          window.viewJourney = function (index) {
+            console.log('🚀 viewJourney CALLED with index:', index);
+            console.log('debugLog length:', debugLog ? debugLog.length : 'undefined');
+
+            try {
+              if (!debugLog || !debugLog[index]) {
+                console.warn("ViewJourney: Entry not found for index", index);
+                return;
+              }
+              const entry = debugLog[index];
+              console.log('✅ Entry found:', entry.searchTerm);
+
+              const container = document.getElementById('journeyContent');
+              console.log('✅ Container found:', container ? 'YES' : 'NO (NULL!)');
+              if (!container) {
+                console.error('❌ CRITICAL: journeyContent element not found!');
+                return;
+              }
+
+              const modal = document.getElementById('journeyModal');
+              console.log('✅ Modal found:', modal ? 'YES' : 'NO (NULL!)');
+              if (!modal) {
+                console.error('❌ CRITICAL: journeyModal element not found!');
+                return;
+              }
+
+              let html = `<div style="margin-bottom:20px; text-align:center;">
+          <div style="font-size:18px; font-weight:700; color:var(--text-main); margin-bottom:4px;">"${escapeHtml(entry.searchTerm || entry.term || 'Unknown')}"</div>
+          <div style="font-size:12px; color:var(--text-muted);">Product: ${escapeHtml(entry.product || 'Unknown')} | Match: ${entry.matchType || '-'}</div>
+        </div>
+        <div class="journey-timeline">`;
+
+              // Step 1: Input Metrics
+              if (entry.metrics) {
+                html += `
+              <div class="journey-step">
+                <div class="step-icon text-primary">1</div>
+                <div class="step-content">
+                  <div class="step-title">Input Metrics</div>
+                  <div class="step-details">
+                    <span class="journey-metric">Orders: ${entry.metrics.orders || 0}</span>
+                    <span class="journey-metric">ACOS: ${entry.metrics.acos || 0}%</span>
+                    <span class="journey-metric">Clicks: ${entry.metrics.clicks || 0}</span>
+                    <span class="journey-metric">CV: ${entry.metrics.cv || 0}%</span>
+                    <span class="journey-metric">CTR: ${entry.metrics.ctr || 0}%</span>
+                  </div>
+                </div>
+              </div>`;
+              }
+
+              // Step 2: Rule Gauntlet
+              const rules = entry.rules || {};
+              let failedRule = null;
+              const checkOrder = ['orders', 'acos', 'clicks', 'cv', 'ctr'];
+              const ruleNames = {
+                orders: 'Minimum Orders',
+                acos: 'Maximum ACOS',
+                clicks: 'Minimum Clicks',
+                cv: 'Min Conversion Rate',
+                ctr: 'Min Click-Through Rate'
+              };
+
+              html += `<div class="journey-step">
+          <div class="step-icon ${entry.reason && entry.reason.includes('Rule') ? 'error' : 'success'}">2</div>
+          <div class="step-content">
+            <div class="step-title">Rule Gauntlet</div>
+            <div class="step-details">`;
+
+              checkOrder.forEach(key => {
+                if (!rules[key]) return;
+                const check = rules[key];
+                const statusIcon = check.passed ? '✅' : '❌';
+                const statusClass = check.passed ? 'text-success' : 'text-error';
+                const operator = (key === 'acos' || key === 'spend') ? '<=' : '>=';
+
+                html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; ${!check.passed ? 'font-weight:700;' : ''}">
+            <span>${statusIcon} ${ruleNames[key]}</span>
+            <span class="${statusClass}">${operator} ${check.threshold} (Actual: ${check.value})</span>
+          </div>`;
+                if (!check.passed && !failedRule) failedRule = ruleNames[key];
+              });
+              html += `</div></div></div>`;
+
+              // Step 3: Duplicate Check
+              if (!failedRule) {
+                const dup = entry.duplicateCheck;
+                const isDup = dup && dup.isDuplicate;
+                html += `
+          <div class="journey-step">
+            <div class="step-icon ${isDup ? 'warning' : 'success'}">3</div>
+            <div class="step-content">
+              <div class="step-title">Duplicate Check</div>
+              <div class="step-details">
+                ${isDup
+                    ? `<div style="color:var(--warning-dark);">⚠️ Found in <strong>${(dup.existingCampaigns || []).join(', ')}</strong></div>`
+                    : `<div style="color:var(--success);">✅ No duplicates found in negatives or targets</div>`
+                  }
+              </div>
+            </div>
+          </div>`;
+              }
+
+              // Step 4: Final Verdict
+              const isHarvested = entry.status === 'HARVESTED' || entry.decision === 'HARVESTED';
+              const finalStatus = entry.status || entry.decision || 'UNKNOWN';
+              html += `
+          <div class="journey-step">
+            <div class="step-icon ${isHarvested ? 'success' : 'error'}">4</div>
+            <div class="step-content" style="border-left: 4px solid ${isHarvested ? 'var(--success)' : 'var(--slate-500)'}">
+              <div class="step-title">Final Verdict</div>
+              <div style="margin-top:8px;">
+                <span class="journey-badge ${isHarvested ? 'harvested' : 'excluded'}">${finalStatus}</span>
+              </div>
+              <div class="step-details" style="margin-top:8px;">
+                 Reason: ${entry.reason || 'N/A'}
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+              console.log('✅ HTML built successfully, length:', html.length);
+
+              container.innerHTML = html;
+              console.log('✅ innerHTML set successfully');
+
+              // FORCE VISIBILITY: Move modal to body to break out of any parent constraints
+              if (modal.parentNode !== document.body) {
+                document.body.appendChild(modal);
+              }
+
+              // Apply styles to ensure visibility
+              modal.style.display = 'flex';
+              modal.style.position = 'fixed';
+              modal.style.top = '0';
+              modal.style.left = '0';
+              modal.style.right = '0';
+              modal.style.bottom = '0';
+              modal.style.width = '100vw'; // Force full width
+              modal.style.height = '100vh'; // Force full height
+              modal.style.zIndex = '2147483647'; // Max z-index
+              modal.style.background = 'rgba(0, 0, 0, 0.8)';
+              modal.style.alignItems = 'center';
+              modal.style.justifyContent = 'center';
+              modal.style.visibility = 'visible';
+              modal.style.opacity = '1';
+
+              modal.classList.add('active');
+
+            } catch (error) {
+              console.error('Error in viewJourney:', error.message);
+            }
+          };
+
+          window.closeJourneyModal = function () {
+            const modal = document.getElementById('journeyModal');
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+          };
+
           document.addEventListener('keydown', function (e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
               return;
@@ -9855,6 +11241,225 @@ More shortcuts coming soon!`);
             }
           });
 
+        </script>
+        <!-- Journey Viewer Modal -->
+        <div id="journeyModal" class="modal">
+          <div class="modal-overlay" onclick="closeJourneyModal()"></div>
+          <div class="modal-content" style="max-width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+              <h3 class="modal-title">Search Term Journey</h3>
+              <button class="modal-close" onclick="closeJourneyModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; padding: 0;">
+              <div id="journeyContent" style="padding: 24px;">
+                <!-- Timeline injected here -->
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" onclick="closeJourneyModal()">Close</button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Logic Hierarchy Modal -->
+        <div id="logicHierarchyModal" class="modal"
+          style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+          <div class="animate-slideUp"
+            style="background:var(--bg-card); border-radius:16px; width:600px; max-width:90%; max-height:90vh; overflow-y:auto; padding:30px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+              <h2
+                style="font-size:20px; font-weight:700; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:24px;">🧠</span> How Logic Works
+              </h2>
+              <button onclick="document.getElementById('logicHierarchyModal').style.display='none'"
+                style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <style>
+              .logic-timeline {
+                position: relative;
+                padding-left: 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+              }
+
+              .logic-timeline::before {
+                content: '';
+                position: absolute;
+                left: 7px;
+                top: 10px;
+                bottom: 10px;
+                width: 2px;
+                background: var(--border);
+              }
+
+              .logic-step {
+                position: relative;
+                background: var(--slate-50);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 16px;
+              }
+
+              .logic-step::before {
+                content: '';
+                position: absolute;
+                left: -25px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: var(--bg-card);
+                border: 4px solid var(--primary);
+                z-index: 2;
+              }
+
+              .logic-step h4 {
+                margin: 0 0 4px 0;
+                color: var(--text-primary);
+                font-size: 14px;
+                font-weight: 700;
+              }
+
+              .logic-step p {
+                margin: 0;
+                font-size: 13px;
+                color: var(--text-secondary);
+                line-height: 1.5;
+              }
+
+              .logic-step.verdict::before {
+                border-color: var(--success);
+              }
+
+              /* Dark mode support logic modal */
+              body.dark-mode .logic-step {
+                background: var(--slate-100);
+              }
+            </style>
+
+            <div class="logic-timeline">
+              <!-- Part A -->
+              <h3 style="margin:16px 0 8px 0; font-size:16px; font-weight:700; color:var(--primary);">Part A: Term
+                Processing</h3>
+
+              <div class="logic-step">
+                <h4>1. Clean & Standardize</h4>
+                <p><b>What:</b> Remove invalid characters and fix spacing.<br>
+                  <b>Why:</b> Amazon rejects junk characters. Ensures 100% upload success.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    "waterproof&nbsp;&nbsp;&nbsp;phone case !!!" → "waterproof phone case"</span>
+                </p>
+              </div>
+
+              <div class="logic-step">
+                <h4>2. Targeting Rules</h4>
+                <p><b>What:</b> Filter terms against your KPI rules (e.g., Min Orders >= 2).<br>
+                  <b>Why:</b> Separate Winners from Losers. Only pay for proven sales.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    Term A (1 Order) ❌ | Term B (5 Orders) ✅</span>
+                </p>
+              </div>
+
+              <div class="logic-step">
+                <h4>3. Duplicate Check</h4>
+                <p><b>What:</b> Scan existing campaigns for this term.<br>
+                  <b>Why:</b> Prevent Self-Competition (paying twice for same word).<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    "blue yoga mat" already in campaign? SKIP.</span>
+                </p>
+              </div>
+
+              <!-- Part B -->
+              <h3 style="margin:24px 0 8px 0; font-size:16px; font-weight:700; color:var(--primary);">Part B: Bulk File
+                Generation</h3>
+
+              <div class="logic-step">
+                <h4>1. Campaign Naming</h4>
+                <p><b>What:</b> Generate names using your Template.<br>
+                  <b>Why:</b> Consistent naming for easy management.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    {Product} | SP | {Match} → "Yoga Mat | SP | Broad"</span>
+                </p>
+              </div>
+
+              <div class="logic-step">
+                <h4>2. SKU Mapping</h4>
+                <p><b>What:</b> Match "Source Product" to your provided SKU.<br>
+                  <b>Why:</b> Ads require a valid SKU to run.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    "Yoga Mat" → SKU-123</span>
+                </p>
+              </div>
+
+              <div class="logic-step">
+                <h4>3. Setting Bids</h4>
+                <p><b>What:</b> Use Source CPC + Modifier.<br>
+                  <b>Why:</b> Bid based on history, not guesses.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    $1.50 CPC + 10% → $1.65 Bid</span>
+                </p>
+              </div>
+
+              <div class="logic-step verdict">
+                <h4>4. Sponsored Brands Video (SBV)</h4>
+                <p><b>What:</b> Extract terms from <b>Sponsored Brands Report</b> (Independent Source).<br>
+                  <b>Why:</b> Use proven branding keywords.<br>
+                  <span style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;"><b>Example:</b>
+                    Term found in SB Report → New SBV Campaign (Not from SP).</span>
+                </p>
+              </div>
+
+            </div>
+
+            <div style="margin-top:24px; text-align:right;">
+              <button class="btn btn-primary"
+                onclick="document.getElementById('logicHierarchyModal').style.display='none'">Got it</button>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          window.showLogicHierarchy = function () {
+            const modal = document.getElementById('logicHierarchyModal');
+            // DOM Hoisting to prevent stacking context traps (fixes "button not working")
+            if (modal.parentNode !== document.body) {
+              document.body.appendChild(modal);
+            }
+            modal.style.display = 'flex';
+          };
+        </script>
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            // Fix: Continue Button Logic
+            const btnGoBulk = document.getElementById('btnGoBulk');
+            if (btnGoBulk) {
+              btnGoBulk.addEventListener('click', () => {
+                const controls = document.getElementById('bulkExportControls');
+                if (controls) {
+                  controls.classList.remove('hidden');
+                  controls.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Hide the CTA button itself (optional, but cleaner)
+                btnGoBulk.style.display = 'none';
+              });
+            }
+
+            // Fix: Scroll to Bulk Step
+            const btnScrollToBulk = document.getElementById('btnScrollToBulk');
+            if (btnScrollToBulk) {
+              btnScrollToBulk.addEventListener('click', () => {
+                const stepPanel = document.getElementById('bulkStepPanel');
+                if (stepPanel) {
+                  stepPanel.classList.remove('hidden');
+                  stepPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              });
+            }
+          });
         </script>
 </body>
 
