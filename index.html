@@ -3735,8 +3735,9 @@
         </div>
         <div id="debugPanelContent">
           <div class="debug-stats-grid">
-            <div class="debug-stat-card" onclick="filterDebugByStat('total')" style="cursor:pointer;" title="Show All">
-              <div class="debug-stat-label">Total Rows Processed</div>
+            <div class="debug-stat-card" onclick="filterDebugByStat('total')" style="cursor:pointer;"
+              title="Total rows in your search term file (Processed + Skipped)">
+              <div class="debug-stat-label">Total Rows in File</div>
               <div class="debug-stat-value" id="debugStatTotal">0</div>
             </div>
             <div class="debug-stat-card" onclick="filterDebugByStat('passed')" style="cursor:pointer;"
@@ -3754,7 +3755,11 @@
               <div class="debug-stat-label">Duplicates Detected</div>
               <div class="debug-stat-value warning" id="debugStatDuplicates">0</div>
             </div>
-            <!-- Negative Stat Removed -->
+            <div class="debug-stat-card" id="debugSkippedCard" onclick="showSkippedBreakdown()" style="cursor:pointer;"
+              title="Rows skipped before rule-checking (Exact source match, empty terms, etc.)">
+              <div class="debug-stat-label">Skipped (Pre-filter)</div>
+              <div class="debug-stat-value" style="color:#8b5cf6;" id="debugStatSkipped">0</div>
+            </div>
           </div>
           <div class="debug-search-wrapper">
             <input type="text" class="debug-search-input" id="debugSearchInput"
@@ -5075,6 +5080,7 @@
           let existingCampaignNames = new Set(); // Database of used names
           let productSkuMap = {}; // NEW: Stores extracted SKUs { "Product Name": "SKU" }
           let renamedCampaignsList = []; // Tracks campaigns that were renamed due to duplicates
+          let loadedFileNames = { SP: null, SB: null }; // Track filenames for debug display
 
           /* --- DEBUG MODE STATE --- */
           let debugModeEnabled = false;
@@ -5085,6 +5091,10 @@
             failed: 0,
             duplicates: 0,
             negatives: 0,
+            skipped: 0,
+            skippedReasons: { noCampaign: 0, noProduct: 0, exactMatch: 0, noSearchTerm: 0 },
+            fileRowCount: 0,
+            perFile: { SP: 0, SB: 0 },
             failedByRule: { orders: 0, acos: 0, spend: 0, clicks: 0, cv: 0, ctr: 0 }
           };
 
@@ -5101,6 +5111,10 @@
               failed: 0,
               duplicates: 0,
               negatives: 0,
+              skipped: 0,
+              skippedReasons: { noCampaign: 0, noProduct: 0, exactMatch: 0, noSearchTerm: 0 },
+              fileRowCount: 0,
+              perFile: { SP: 0, SB: 0 },
               failedByRule: { orders: 0, acos: 0, spend: 0, clicks: 0, cv: 0, ctr: 0 }
             };
           }
@@ -5113,16 +5127,43 @@
             }
             panel.classList.add('visible');
 
-            // Update stats
-            document.getElementById('debugStatTotal').textContent = debugStats.total.toLocaleString();
+            // Update stats - Total now shows file row count (processed + skipped)
+            const trueTotal = debugStats.total + debugStats.skipped;
+            document.getElementById('debugStatTotal').textContent = trueTotal.toLocaleString();
+
+            // Show per-file breakdown under total
+            const totalCard = document.getElementById('debugStatTotal');
+            if (totalCard) {
+              let subLabel = totalCard.parentElement.querySelector('.debug-sub-label');
+              if (!subLabel) {
+                subLabel = document.createElement('div');
+                subLabel.className = 'debug-sub-label';
+                subLabel.style.cssText = 'font-size:9px; color:#94a3b8; margin-top:2px; font-weight:400; line-height:1.2;';
+                totalCard.parentElement.appendChild(subLabel);
+              }
+              const parts = [];
+              if (debugStats.perFile.SP > 0) parts.push(`SP: ${debugStats.perFile.SP.toLocaleString()} <span style="opacity:0.7">(${loadedFileNames.SP || 'Unknown'})</span>`);
+              if (debugStats.perFile.SB > 0) parts.push(`SB: ${debugStats.perFile.SB.toLocaleString()} <span style="opacity:0.7">(${loadedFileNames.SB || 'Unknown'})</span>`);
+              subLabel.innerHTML = parts.length > 0 ? parts.join('<br>') : '';
+            }
             document.getElementById('debugStatPassed').textContent = debugStats.passed.toLocaleString();
             document.getElementById('debugStatFailed').textContent = debugStats.failed.toLocaleString();
             document.getElementById('debugStatDuplicates').textContent = debugStats.duplicates.toLocaleString();
-            document.getElementById('debugStatNegatives').textContent = debugStats.negatives.toLocaleString();
+
+            // Update Skipped stat
+            const skippedEl = document.getElementById('debugStatSkipped');
+            if (skippedEl) skippedEl.textContent = debugStats.skipped.toLocaleString();
+
+            // Update tooltip with skipped breakdown
+            const skippedCard = document.getElementById('debugSkippedCard');
+            if (skippedCard && debugStats.skipped > 0) {
+              const r = debugStats.skippedReasons;
+              skippedCard.title = `Skipped: ${debugStats.skipped}\n• Exact Match (source): ${r.exactMatch}\n• Empty Search Term: ${r.noSearchTerm}\n• No Campaign Name: ${r.noCampaign}\n• No Product Detected: ${r.noProduct}`;
+            }
 
             // Show warning for large files
             const warningBanner = document.getElementById('debugWarningBanner');
-            if (debugStats.total >= 10000) {
+            if (trueTotal >= 10000) {
               warningBanner.classList.add('visible');
             } else {
               warningBanner.classList.remove('visible');
@@ -5256,6 +5297,43 @@
               container.style.display = 'block';
             } else {
               container.style.display = 'none';
+            }
+          }
+
+          function showSkippedBreakdown() {
+            const container = document.getElementById('debugFailedBreakdown');
+            const content = document.getElementById('debugFailedBreakdownContent');
+
+            if (container.style.display === 'none' || !container.dataset.showingSkipped) {
+              const r = debugStats.skippedReasons;
+              const reasons = [
+                { key: 'exactMatch', label: 'Exact Match (Source)', color: '#8b5cf6', desc: 'Source match type is Exact — no need to harvest what is already exact-targeted' },
+                { key: 'noSearchTerm', label: 'Empty Search Term', color: '#6366f1', desc: 'Row has no customer search term value' },
+                { key: 'noCampaign', label: 'No Campaign Name', color: '#a78bfa', desc: 'Row has no campaign name — cannot determine product' },
+                { key: 'noProduct', label: 'No Product Detected', color: '#c4b5fd', desc: 'Could not extract product name from campaign' }
+              ];
+
+              let html = '<div style="font-size:12px; font-weight:700; color:#5b21b6; margin-bottom:10px;">Skipped Rows Breakdown (Pre-filter)</div>';
+              html += '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">';
+              reasons.forEach(reason => {
+                const count = r[reason.key] || 0;
+                html += `<div style="padding:10px; background:#f5f3ff; border-radius:6px; border-left:3px solid ${reason.color};">
+                  <div style="font-size:10px; color:#64748b;">${reason.label}</div>
+                  <div style="font-size:18px; font-weight:700; color:${reason.color};">${count.toLocaleString()}</div>
+                  <div style="font-size:9px; color:#94a3b8; margin-top:4px;">${reason.desc}</div>
+                </div>`;
+              });
+              html += '</div>';
+              html += `<div style="margin-top:10px; padding:8px; background:#ede9fe; border-radius:6px; font-size:11px; color:#5b21b6;">
+                <strong>Total Skipped:</strong> ${debugStats.skipped.toLocaleString()} rows out of ${(debugStats.total + debugStats.skipped).toLocaleString()} total file rows
+              </div>`;
+
+              content.innerHTML = html;
+              container.style.display = 'block';
+              container.dataset.showingSkipped = 'true';
+            } else {
+              container.style.display = 'none';
+              delete container.dataset.showingSkipped;
             }
           }
 
@@ -6400,7 +6478,21 @@
           function handleFileGeneric(file, which) {
             if (!file) return;
             const nameEl = (which === "SP") ? fileNameDisplaySP : fileNameDisplaySB;
-            nameEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> ${file.name}`;
+
+            // Store filename
+            if (typeof loadedFileNames !== 'undefined') {
+              loadedFileNames[which] = file.name;
+            }
+
+            // Show Filename with Clear Button
+            nameEl.innerHTML = `
+              <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                <span style="display:flex; align-items:center; gap:6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> 
+                  ${escapeHtml(file.name)}
+                </span>
+                <button onclick="clearFile('${which}')" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer; padding:0 4px; line-height:1;" title="Remove file">&times;</button>
+              </div>`;
             nameEl.style.display = 'flex';
             setStatus(which, "Reading file...", "neutral");
 
@@ -6445,6 +6537,40 @@
               } catch (e) { console.error(e); setStatus(which, "Error reading file.", "error"); }
             };
             reader.readAsArrayBuffer(file);
+          }
+
+          function clearFile(which) {
+            if (event) event.stopPropagation();
+
+            // 1. Reset Global Data Arrays
+            if (which === "SP") {
+              spRowsRaw = []; spRowsFmt = []; spHeaders = [];
+              filesUploaded.sp = false;
+              document.getElementById('fileInputSP').value = '';
+            } else {
+              sbRowsRaw = []; sbRowsFmt = []; sbHeaders = [];
+              filesUploaded.sb = false;
+              document.getElementById('fileInputSB').value = '';
+            }
+
+            // 2. Clear Filename Tracking
+            if (typeof loadedFileNames !== 'undefined') {
+              loadedFileNames[which] = null;
+            }
+
+            // 3. Update UI
+            const nameEl = (which === "SP") ? fileNameDisplaySP : fileNameDisplaySB;
+            nameEl.innerHTML = '';
+            nameEl.style.display = 'none';
+            setStatus(which, '', 'neutral');
+
+            // 4. Rebuild Product List
+            buildProductListAndInputsFromBoth();
+
+            // 5. Update Step Progress
+            checkStepProgress();
+
+            showToast(`${which} file removed.`);
           }
 
           /* --- NEW: Dynamic Rules Engine with Memory & Copy Tools --- */
@@ -6829,18 +6955,22 @@
             const { targets: alreadyTargets, campaigns: alreadyCampaigns } = buildAlreadyTargetedDB(rowsRaw, campaignCol, colTargeting, colMatch);
             const grouped = {};
 
+            // Track true file row count for debug accuracy
+            debugStats.fileRowCount += rowsRaw.length;
+            debugStats.perFile[which] = rowsRaw.length;
+
             for (let i = 0; i < rowsRaw.length; i++) {
               const row = rowsRaw[i];
               const rowFmt = rowsFmt[i] || {};
 
               const sourceCampaign = (row[campaignCol] || "").toString().trim();
-              if (!sourceCampaign) continue;
+              if (!sourceCampaign) { debugStats.skipped++; debugStats.skippedReasons.noCampaign++; continue; }
               const product = extractProductName(sourceCampaign);
-              if (!product) continue;
+              if (!product) { debugStats.skipped++; debugStats.skippedReasons.noProduct++; continue; }
 
               const targetingRaw = (row[colTargeting] || "").toString().trim();
               const matchTypeRaw = (row[colMatch] || "").toString().trim();
-              if (normalizeMatchTypeToBucket(matchTypeRaw) === "Exact") continue;
+              if (normalizeMatchTypeToBucket(matchTypeRaw) === "Exact") { debugStats.skipped++; debugStats.skippedReasons.exactMatch++; continue; }
 
               // Extract Row Metrics
               const rOrders = toNum(row[colOrders]);
@@ -6919,7 +7049,7 @@
 
               // Check if should be collected as negative keyword
               const customerSearchTerm = (row[colTerm] || "").toString().trim();
-              if (!customerSearchTerm) continue;
+              if (!customerSearchTerm) { debugStats.skipped++; debugStats.skippedReasons.noSearchTerm++; continue; }
 
               // Negative Keyword Logic REMOVED per user request
               // if (generateNegatives && !pass) { ... }
