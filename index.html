@@ -4341,6 +4341,16 @@
         <div style="font-size:13px;"><strong>Total Campaigns:</strong> <span id="previewTotalCampaigns">0</span></div>
         <div style="font-size:13px;"><strong>Total Keywords:</strong> <span id="previewTotalKeywords">0</span></div>
       </div>
+      <!-- Renamed Campaigns Warning (shown when campaigns are renamed to avoid duplicates) -->
+      <div id="previewRenamedSection"
+        style="display:none; padding:10px 24px; background:linear-gradient(135deg, #fffbeb, #fef3c7); border-bottom:1px solid #f59e0b;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <span style="font-size:16px;">⚠️</span>
+          <span style="font-size:13px; font-weight:700; color:#92400e;">Campaigns Renamed (to avoid duplicates with your
+            existing campaigns)</span>
+        </div>
+        <div id="previewRenamedList" style="max-height:120px; overflow-y:auto; font-size:12px;"></div>
+      </div>
       <!-- Tab Switcher -->
       <div style="padding:12px 24px 0; display:flex; gap:8px; border-bottom:1px solid var(--border);">
         <button id="previewTabSP" class="preview-tab active" onclick="switchPreviewTab('sp')"
@@ -7980,10 +7990,8 @@
                     sku = (prof.spSku || "").trim();
                   }
 
-                  // FIXED: Explicitly declare fallbackBid to prevent crash (ignoring the malformed line below)
+                  // FIXED: Explicitly declare fallbackBid to prevent crash
                   let fallbackBid = spDefaultBid;
-
-                  // Fallback bid: Ad Group Default Bid (Source CPC used when available)\r\n                let fallbackBid = spDefaultBid;
 
                   // Campaign Row
                   sheet.push([
@@ -8194,11 +8202,15 @@
                       if (bulkMode === "opt1") {
                         const vars = { Product: product, Base: product, Match: bucket, Video: video };
                         const baseName = applyTemplate(strVal(opt1_sbvCampTpl, "{Product} | SBV | {Video} | {Match}"), vars);
+                        // --- DEDUPLICATION: Use getUniqueCampaignName to avoid conflicts ---
+                        const uniqueBaseName = getUniqueCampaignName(baseName);
                         // Append suffix if multiple chunks
-                        campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
+                        campName = (chunks.length > 1) ? `${uniqueBaseName} | ${idx + 1}` : uniqueBaseName;
                       } else {
                         const baseName = `${product} | SBV | ${video} | ${bucket}`;
-                        campName = (chunks.length > 1) ? `${baseName} | ${idx + 1}` : baseName;
+                        // --- DEDUPLICATION: Use getUniqueCampaignName to avoid conflicts ---
+                        const uniqueBaseName = getUniqueCampaignName(baseName);
+                        campName = (chunks.length > 1) ? `${uniqueBaseName} | ${idx + 1}` : uniqueBaseName;
                       }
                       const agName = campName;
 
@@ -9533,6 +9545,24 @@ More shortcuts coming soon!`);
             // Show SP tab by default
             switchPreviewTab('sp');
 
+            // Display renamed campaigns in preview if any
+            const renamedList = result.renamedList || [];
+            const renamedSection = document.getElementById('previewRenamedSection');
+            const renamedListEl = document.getElementById('previewRenamedList');
+            if (renamedList.length > 0) {
+              renamedSection.style.display = 'block';
+              renamedListEl.innerHTML = renamedList.map(item =>
+                `<div style="padding:3px 0; border-bottom:1px solid #fde68a;">
+                  <span style="color:#991b1b; text-decoration:line-through;">${escapeHtml(item.original)}</span>
+                  <span style="color:#64748b;"> → </span>
+                  <span style="color:#166534; font-weight:600;">${escapeHtml(item.renamed)}</span>
+                </div>`
+              ).join('');
+            } else {
+              renamedSection.style.display = 'none';
+              renamedListEl.innerHTML = '';
+            }
+
             // Show modal
             document.getElementById('bulkPreviewModal').style.display = 'flex';
           }
@@ -9634,6 +9664,10 @@ More shortcuts coming soon!`);
               return null;
             }
 
+            // --- SAVE existingCampaignNames so preview doesn't contaminate download ---
+            const savedCampaignNames = new Set(existingCampaignNames);
+            renamedCampaignsList = []; // Reset for preview tracking
+
             // Get settings
             const startDate = (bulkStartDate?.value || formatTodayYYYYMMDD()).replace(/-/g, '');
             const spState = bulkState?.value || "Enabled";
@@ -9709,11 +9743,15 @@ More shortcuts coming soon!`);
                   if (!list.length) return;
                   const vars = { ...baseVars, Match: bucket };
                   let rawBaseName = applyTemplate(campTpl, vars);
+
+                  // --- DEDUPLICATION: Use getUniqueCampaignName to avoid conflicts ---
+                  const uniqueRootName = getUniqueCampaignName(rawBaseName);
+
                   const chunks = chunkArray(list, lim);
 
                   chunks.forEach((chunk, idx) => {
                     const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const campaignName = rawBaseName + suffix;
+                    const campaignName = uniqueRootName + suffix;
                     const adGroupName = campaignName;
 
                     let fallbackBid = spDefaultBid;
@@ -9779,11 +9817,15 @@ More shortcuts coming soon!`);
                 if (asins.length) {
                   const vars = { ...baseVars, Match: "PT" };
                   let rawBaseName = applyTemplate(campTpl, vars);
+
+                  // --- DEDUPLICATION: Use getUniqueCampaignName to avoid conflicts ---
+                  const uniqueRootName = getUniqueCampaignName(rawBaseName);
+
                   const chunks = chunkArray(asins, limPT);
 
                   chunks.forEach((chunk, idx) => {
                     const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const campaignName = rawBaseName + suffix;
+                    const campaignName = uniqueRootName + suffix;
                     const adGroupName = campaignName;
 
                     // Campaign row
@@ -9896,10 +9938,15 @@ More shortcuts coming soon!`);
                   const keywordsList = finals.map(r => (r["Suggested Value"] || r["Customer Search Term"] || "").toString().trim()).filter(Boolean);
                   const chunks = chunkArray(keywordsList, limit);
 
-                  chunks.forEach((chunk, chunkIdx) => {
+                  chunks.forEach((chunkTerms, chunkIdx) => {
                     const vars = { Product: product, Match: bucket, Video: "SBV" };
+                    const rawBaseName = applyTemplate(campTpl, vars);
+
+                    // --- DEDUPLICATION: Use getUniqueCampaignName to avoid conflicts ---
+                    const uniqueRootName = getUniqueCampaignName(rawBaseName);
+
                     const suffix = (chunks.length > 1) ? ` | ${chunkIdx + 1}` : "";
-                    const campaignName = applyTemplate(campTpl, vars) + suffix;
+                    const campaignName = uniqueRootName + suffix;
                     const adGroupName = applyTemplate(agTpl, vars);
 
                     let fallbackBid = 0.80;
@@ -9948,7 +9995,7 @@ More shortcuts coming soon!`);
                     sbvSheet.push(adRow);
 
                     // Keyword rows
-                    chunk.forEach(kw => {
+                    chunkTerms.forEach(kw => {
                       const kwRow = new Array(sbvHeader.length).fill("");
                       kwRow[0] = "Sponsored Brands";
                       kwRow[1] = "Keyword";
@@ -9966,7 +10013,12 @@ More shortcuts coming soon!`);
               });
             }
 
-            return { spData: spSheet, sbvData: sbvSheet };
+            // --- RESTORE existingCampaignNames so download can re-detect conflicts fresh ---
+            existingCampaignNames = savedCampaignNames;
+
+            // Return preview data + renamed list for display in preview modal
+            const previewRenamedList = [...renamedCampaignsList];
+            return { spData: spSheet, sbvData: sbvSheet, renamedList: previewRenamedList };
           }
 
           // Close preview with Escape key
