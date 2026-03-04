@@ -6182,7 +6182,17 @@
               row.style.cssText = "display:flex; gap:8px; align-items:center; margin-bottom:8px;";
 
               // CHECK MEMORY: Do we have an SKU for this product?
-              const autoSku = productSkuMap[p] || "";
+              // Try exact match first, then fuzzy match (trimmed, case-insensitive)
+              let autoSku = productSkuMap[p] || "";
+              if (!autoSku) {
+                const pNorm = p.toLowerCase().trim();
+                for (const [key, val] of Object.entries(productSkuMap)) {
+                  if (key.toLowerCase().trim() === pNorm) {
+                    autoSku = val;
+                    break;
+                  }
+                }
+              }
               const style = autoSku ? "background:#f0fdf4; border-color:#bbf7d0; color:#15803d; font-weight:700;" : "";
               const icon = autoSku ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>` : "";
 
@@ -7790,6 +7800,13 @@
                   statusBulkRef.className = "text-success";
                   console.log("📦 SKU Map:", productSkuMap);
                   checkStepProgress();
+
+                  // --- FIX: Refresh SKU UI if it's already rendered ---
+                  // This handles the case where user ran analysis BEFORE uploading the ref file
+                  const products = getAllProductsFromLastResults();
+                  if (products.length > 0 && opt1_spSkuMap) {
+                    buildOpt1SkuMapUI(products);
+                  }
                 } else {
                   statusBulkRef.textContent = "Error: No campaign columns found. Check file headers.";
                   statusBulkRef.className = "text-error";
