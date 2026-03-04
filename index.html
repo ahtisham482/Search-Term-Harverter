@@ -6609,8 +6609,33 @@
             if (sbRowsRaw.length) sbCampaignColName = sbHeaders.find(h => h.trim().toLowerCase() === "campaign name") || findColumn(sbHeaders, ["campaign"]);
 
             const set = new Set();
-            for (const r of spRowsRaw) { const cn = (r[spCampaignColName] || "").toString(); if (cn) set.add(extractProductName(cn)); }
-            for (const r of sbRowsRaw) { const cn = (r[sbCampaignColName] || "").toString(); if (cn) set.add(extractProductName(cn)); }
+            let searchTermCampaignCount = 0;
+            for (const r of spRowsRaw) {
+              const cn = (r[spCampaignColName] || "").toString().trim();
+              if (cn) {
+                set.add(extractProductName(cn));
+                // CRITICAL: Also add the FULL campaign name to existingCampaignNames
+                // These campaigns exist on Amazon (search terms came from them)
+                if (!existingCampaignNames.has(cn)) {
+                  existingCampaignNames.add(cn);
+                  searchTermCampaignCount++;
+                }
+              }
+            }
+            for (const r of sbRowsRaw) {
+              const cn = (r[sbCampaignColName] || "").toString().trim();
+              if (cn) {
+                set.add(extractProductName(cn));
+                // CRITICAL: Also add SB campaign names to existingCampaignNames
+                if (!existingCampaignNames.has(cn)) {
+                  existingCampaignNames.add(cn);
+                  searchTermCampaignCount++;
+                }
+              }
+            }
+            if (searchTermCampaignCount > 0) {
+              console.log(`[DEDUP] Added ${searchTermCampaignCount} campaign names from search term reports. Total existing: ${existingCampaignNames.size}`);
+            }
 
             detectedProducts = Array.from(set).filter(Boolean).sort();
             renderProductRules(detectedProducts);
@@ -7829,7 +7854,7 @@
               return baseName;
             }
 
-            // 2. Conflict found! Find next available: Harvested | 1, Harvested | 2...
+            // Conflict found! Find next available: Harvested | 1, Harvested | 2...
             let counter = 1;
             while (true) {
               const candidate = `${baseName} | ${counter}`;
