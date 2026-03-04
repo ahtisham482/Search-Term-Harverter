@@ -7829,10 +7829,10 @@
               return baseName;
             }
 
-            // 2. Conflict found! Start counting: Harvested 1, Harvested 2...
+            // 2. Conflict found! Find next available: Harvested | 1, Harvested | 2...
             let counter = 1;
             while (true) {
-              const candidate = `${baseName} ${counter}`;
+              const candidate = `${baseName} | ${counter}`;
               if (!existingCampaignNames.has(candidate)) {
                 existingCampaignNames.add(candidate); // Reserve it
                 // Track this rename for user feedback
@@ -7841,6 +7841,27 @@
               }
               counter++;
             }
+          }
+
+          /* --- Helper: Get N consecutive available campaign names for chunked campaigns --- */
+          function getChunkedCampaignNames(baseName, chunkCount) {
+            // Find chunkCount available names in the pattern: baseName | 1, baseName | 2, ...
+            // Skips over any numbers already taken by existing campaigns
+            const names = [];
+            let counter = 1;
+            while (names.length < chunkCount) {
+              const candidate = `${baseName} | ${counter}`;
+              if (!existingCampaignNames.has(candidate)) {
+                existingCampaignNames.add(candidate); // Reserve it
+                names.push(candidate);
+                // Track if the number doesn't match the natural sequence
+                if (counter !== names.length) {
+                  renamedCampaignsList.push({ original: `${baseName} | ${names.length}`, renamed: candidate });
+                }
+              }
+              counter++;
+            }
+            return names;
           }
 
           /* --- UPDATED: Download Bulk (With 3 Bidding Strategies & Modifier) --- */
@@ -8106,17 +8127,19 @@
                     const vars = { ...baseVars, Match: bucket };
                     let rawBaseName = applyTemplate(campTpl, vars);
 
-                    // --- DEDUPLICATION LOGIC: Check EACH final name (including chunk suffix) ---
+                    // --- SMART DEDUPLICATION: Find next available names ---
                     const chunks = chunkArray(list, lim);
-                    chunks.forEach((chunk, idx) => {
-                      // Build the candidate name WITH chunk suffix first
-                      const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                      const candidateName = rawBaseName + suffix;
-                      // THEN check against existing campaigns
-                      const finalCampName = getUniqueCampaignName(candidateName);
-
-                      writeSpCampaignBundle(product, bucket, finalCampName, chunk, false);
-                    });
+                    if (chunks.length === 1) {
+                      // Single chunk: try base name first, then | 1, | 2...
+                      const finalCampName = getUniqueCampaignName(rawBaseName);
+                      writeSpCampaignBundle(product, bucket, finalCampName, chunks[0], false);
+                    } else {
+                      // Multiple chunks: find consecutive available | N numbers
+                      const chunkNames = getChunkedCampaignNames(rawBaseName, chunks.length);
+                      chunks.forEach((chunk, idx) => {
+                        writeSpCampaignBundle(product, bucket, chunkNames[idx], chunk, false);
+                      });
+                    }
                   });
 
                   // Process Product Targeting (ASIN)
@@ -8124,14 +8147,17 @@
                     const vars = { ...baseVars, Match: "PT" };
                     let rawBaseName = applyTemplate(campTpl, vars);
 
-                    // --- DEDUPLICATION LOGIC: Check EACH final name (including chunk suffix) ---
+                    // --- SMART DEDUPLICATION: Find next available names ---
                     const chunks = chunkArray(asins, limPT);
-                    chunks.forEach((chunk, idx) => {
-                      const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                      const candidateName = rawBaseName + suffix;
-                      const finalCampName = getUniqueCampaignName(candidateName);
-                      writeSpCampaignBundle(product, "PT", finalCampName, chunk, true);
-                    });
+                    if (chunks.length === 1) {
+                      const finalCampName = getUniqueCampaignName(rawBaseName);
+                      writeSpCampaignBundle(product, "PT", finalCampName, chunks[0], true);
+                    } else {
+                      const chunkNames = getChunkedCampaignNames(rawBaseName, chunks.length);
+                      chunks.forEach((chunk, idx) => {
+                        writeSpCampaignBundle(product, "PT", chunkNames[idx], chunk, true);
+                      });
+                    }
                   }
                 }
 
@@ -8208,23 +8234,16 @@
                     // SPLIT LOGIC (Chunking)
                     const chunks = chunkArray(allTerms, limit);
 
+                    // Pre-calculate base name and chunk names for SBV
+                    const sbvBaseName = (bulkMode === "opt1")
+                      ? applyTemplate(strVal(opt1_sbvCampTpl, "{Product} | SBV | {Video} | {Match}"), { Product: product, Base: product, Match: bucket, Video: video })
+                      : `${product} | SBV | ${video} | ${bucket}`;
+                    const sbvChunkNames = (chunks.length === 1)
+                      ? [getUniqueCampaignName(sbvBaseName)]
+                      : getChunkedCampaignNames(sbvBaseName, chunks.length);
+
                     chunks.forEach((chunkTerms, idx) => {
-                      // Names
-                      let campName;
-                      if (bulkMode === "opt1") {
-                        const vars = { Product: product, Base: product, Match: bucket, Video: video };
-                        const baseName = applyTemplate(strVal(opt1_sbvCampTpl, "{Product} | SBV | {Video} | {Match}"), vars);
-                        // --- DEDUPLICATION: Check EACH final name (including chunk suffix) ---
-                        const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                        const candidateName = baseName + suffix;
-                        campName = getUniqueCampaignName(candidateName);
-                      } else {
-                        const baseName = `${product} | SBV | ${video} | ${bucket}`;
-                        // --- DEDUPLICATION: Check EACH final name (including chunk suffix) ---
-                        const suffix2 = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                        const candidateName2 = baseName + suffix2;
-                        campName = getUniqueCampaignName(candidateName2);
-                      }
+                      const campName = sbvChunkNames[idx];
                       const agName = campName;
 
                       // Generate a timestamped Ad Name
@@ -9757,13 +9776,14 @@ More shortcuts coming soon!`);
                   const vars = { ...baseVars, Match: bucket };
                   let rawBaseName = applyTemplate(campTpl, vars);
 
-                  // --- DEDUPLICATION: Check EACH final name (including chunk suffix) ---
+                  // --- SMART DEDUPLICATION: Find next available names ---
                   const chunks = chunkArray(list, lim);
+                  const previewChunkNames = (chunks.length === 1)
+                    ? [getUniqueCampaignName(rawBaseName)]
+                    : getChunkedCampaignNames(rawBaseName, chunks.length);
 
                   chunks.forEach((chunk, idx) => {
-                    const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const candidateName = rawBaseName + suffix;
-                    const campaignName = getUniqueCampaignName(candidateName);
+                    const campaignName = previewChunkNames[idx];
                     const adGroupName = campaignName;
 
                     let fallbackBid = spDefaultBid;
@@ -9830,13 +9850,14 @@ More shortcuts coming soon!`);
                   const vars = { ...baseVars, Match: "PT" };
                   let rawBaseName = applyTemplate(campTpl, vars);
 
-                  // --- DEDUPLICATION: Check EACH final name (including chunk suffix) ---
+                  // --- SMART DEDUPLICATION: Find next available names ---
                   const chunks = chunkArray(asins, limPT);
+                  const previewPtNames = (chunks.length === 1)
+                    ? [getUniqueCampaignName(rawBaseName)]
+                    : getChunkedCampaignNames(rawBaseName, chunks.length);
 
                   chunks.forEach((chunk, idx) => {
-                    const suffix = (chunks.length > 1) ? ` | ${idx + 1}` : "";
-                    const candidateName = rawBaseName + suffix;
-                    const campaignName = getUniqueCampaignName(candidateName);
+                    const campaignName = previewPtNames[idx];
                     const adGroupName = campaignName;
 
                     // Campaign row
@@ -9953,10 +9974,12 @@ More shortcuts coming soon!`);
                     const vars = { Product: product, Match: bucket, Video: "SBV" };
                     const rawBaseName = applyTemplate(campTpl, vars);
 
-                    // --- DEDUPLICATION: Check EACH final name (including chunk suffix) ---
-                    const suffix = (chunks.length > 1) ? ` | ${chunkIdx + 1}` : "";
-                    const candidateName = rawBaseName + suffix;
-                    const campaignName = getUniqueCampaignName(candidateName);
+                    // --- SMART DEDUPLICATION: Find next available names ---
+                    // (Pre-calculated before the loop for SBV preview)
+                    const sbvPreviewNames = (chunks.length === 1)
+                      ? [getUniqueCampaignName(rawBaseName)]
+                      : getChunkedCampaignNames(rawBaseName, chunks.length);
+                    const campaignName = sbvPreviewNames[chunkIdx];
                     const adGroupName = applyTemplate(agTpl, vars);
 
                     let fallbackBid = 0.80;
