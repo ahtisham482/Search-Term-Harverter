@@ -7846,45 +7846,68 @@
             reader.readAsArrayBuffer(file);
           }
 
+          /* --- Helper: Find the maximum N already used for a baseName --- */
+          /* Checks BOTH "baseName | N" (pipe) and "baseName N" (space) patterns */
+          function findMaxUsedNumber(baseName) {
+            let maxN = 0;
+            // Build regex patterns to match both naming conventions:
+            // "BaseName | 1"  and  "BaseName 1"
+            const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pipePattern = new RegExp(`^${escapedBase} \\| (\\d+)$`);
+            const spacePattern = new RegExp(`^${escapedBase} (\\d+)$`);
+
+            for (const name of existingCampaignNames) {
+              let match = pipePattern.exec(name);
+              if (match) {
+                const n = parseInt(match[1], 10);
+                if (n > maxN) maxN = n;
+                continue;
+              }
+              match = spacePattern.exec(name);
+              if (match) {
+                const n = parseInt(match[1], 10);
+                if (n > maxN) maxN = n;
+              }
+            }
+            return maxN;
+          }
+
           /* --- Helper: Generate Unique Campaign Name --- */
           function getUniqueCampaignName(baseName) {
-            // 1. Check strict exact match (e.g., "Hat | Harvested")
+            // 1. If baseName itself is not taken, use it
             if (!existingCampaignNames.has(baseName)) {
-              existingCampaignNames.add(baseName); // Reserve it for this session
+              existingCampaignNames.add(baseName);
               return baseName;
             }
 
-            // Conflict found! Find next available: Harvested | 1, Harvested | 2...
-            let counter = 1;
-            while (true) {
-              const candidate = `${baseName} | ${counter}`;
-              if (!existingCampaignNames.has(candidate)) {
-                existingCampaignNames.add(candidate); // Reserve it
-                // Track this rename for user feedback
-                renamedCampaignsList.push({ original: baseName, renamed: candidate });
-                return candidate;
-              }
-              counter++;
-            }
+            // 2. Conflict! Find the highest N used across BOTH pipe & space patterns
+            const maxN = findMaxUsedNumber(baseName);
+            // Start from maxN + 1 (guaranteed to be available)
+            const candidate = `${baseName} | ${maxN + 1}`;
+            existingCampaignNames.add(candidate);
+            renamedCampaignsList.push({ original: baseName, renamed: candidate });
+            return candidate;
           }
 
           /* --- Helper: Get N consecutive available campaign names for chunked campaigns --- */
           function getChunkedCampaignNames(baseName, chunkCount) {
-            // Find chunkCount available names in the pattern: baseName | 1, baseName | 2, ...
-            // Skips over any numbers already taken by existing campaigns
+            // Find the highest N used across BOTH pipe & space patterns
+            const maxN = findMaxUsedNumber(baseName);
+            // Also check if baseName itself exists (counts as N=0)
+            const baseExists = existingCampaignNames.has(baseName);
+
+            // Start assigning from maxN + 1
             const names = [];
-            let counter = 1;
-            while (names.length < chunkCount) {
-              const candidate = `${baseName} | ${counter}`;
-              if (!existingCampaignNames.has(candidate)) {
-                existingCampaignNames.add(candidate); // Reserve it
-                names.push(candidate);
-                // Track if the number doesn't match the natural sequence
-                if (counter !== names.length) {
-                  renamedCampaignsList.push({ original: `${baseName} | ${names.length}`, renamed: candidate });
-                }
+            const startN = maxN + 1;
+            for (let i = 0; i < chunkCount; i++) {
+              const n = startN + i;
+              const candidate = `${baseName} | ${n}`;
+              existingCampaignNames.add(candidate);
+              names.push(candidate);
+              // Track rename if the number doesn't match natural sequence
+              if (n !== i + 1) {
+                renamedCampaignsList.push({ original: `${baseName} | ${i + 1}`, renamed: candidate });
               }
-              counter++;
             }
             return names;
           }
