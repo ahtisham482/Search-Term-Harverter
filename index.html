@@ -8034,7 +8034,11 @@
 
                   // Generate new name (cached per original name)
                   if (!renameMap[campName]) {
-                    renameMap[campName] = getUniqueCampaignName(campName);
+                    // Strip trailing " | N" suffix to get the true base name
+                    // e.g., "Harvested | 3" → base = "Harvested"
+                    // e.g., "Harvested" → base = "Harvested" (no suffix)
+                    const baseName = campName.replace(/ \| \d+$/, '');
+                    renameMap[campName] = getUniqueCampaignName(baseName);
                   }
 
                   // Replace campaign name
