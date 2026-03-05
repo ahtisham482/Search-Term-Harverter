@@ -4233,6 +4233,52 @@
               </div>
             </div>
             <div id="bulkStatus" style="margin-top:8px; font-size:12px; font-weight:600; text-align:left;"></div>
+
+            <!-- FIX FAILED CAMPAIGNS SECTION -->
+            <div id="retrySection" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+              <div
+                onclick="document.getElementById('retryContent').style.display = document.getElementById('retryContent').style.display === 'none' ? 'block' : 'none'; this.querySelector('.retry-chevron').style.transform = document.getElementById('retryContent').style.display === 'none' ? 'rotate(0deg)' : 'rotate(90deg)';"
+                style="cursor:pointer; display:flex; align-items:center; gap:8px; padding:10px 14px; background:linear-gradient(135deg, #fef3c7, #fde68a); border-radius:var(--radius-lg); border:1px solid #fbbf24;">
+                <span style="font-size:20px;">🔄</span>
+                <div style="flex:1;">
+                  <div style="font-weight:700; font-size:13px; color:#92400e;">Fix Failed Campaigns</div>
+                  <div style="font-size:11px; color:#a16207;">Got "already exists" errors from Amazon? Fix them here.
+                  </div>
+                </div>
+                <svg class="retry-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e"
+                  stroke-width="2" style="transition:transform 0.2s;">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+              <div id="retryContent"
+                style="display:none; padding:14px; background:#fffbeb; border:1px solid #fde68a; border-top:none; border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+                <div style="font-size:12px; color:#78350f; margin-bottom:10px; line-height:1.5;">
+                  <strong>How it works:</strong>
+                  <ol style="margin:6px 0 0 16px; padding:0;">
+                    <li>Upload your bulk file to Amazon</li>
+                    <li>If some campaigns fail with "already exists" errors, copy those error messages</li>
+                    <li>Paste them below and click "Fix & Re-Export"</li>
+                    <li>Upload the new <code>_RETRY</code> file — only contains the fixed campaigns</li>
+                  </ol>
+                </div>
+                <textarea id="retryErrorTextarea" rows="6"
+                  style="width:100%; font-size:11px; font-family:monospace; padding:10px; border:1px solid #d4d4d8; border-radius:var(--radius); resize:vertical; background:white;"
+                  placeholder="Paste Amazon error messages here, e.g.:&#10;Campaign with name=TU - Black | SP | M | Exact | Harvested already exists!&#10;This row was not processed due to the error in row #2&#10;Campaign with name=TU - Silver | SP | M | PT | Harvested already exists!&#10;..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px; align-items:center;">
+                  <button class="btn btn-primary" onclick="retryFailedCampaigns()" style="white-space:nowrap;">
+                    🔄 Fix & Re-Export
+                  </button>
+                  <button class="btn btn-secondary"
+                    onclick="document.getElementById('retryErrorTextarea').value=''; document.getElementById('retryStatus').innerHTML='';"
+                    style="white-space:nowrap; font-size:11px;">
+                    Clear
+                  </button>
+                </div>
+                <div id="retryStatus" style="margin-top:10px; font-size:12px;"></div>
+              </div>
+            </div>
+            <!-- END FIX FAILED CAMPAIGNS -->
+
           </div>
         </div>
       </div>
@@ -5091,6 +5137,7 @@
           let productSkuMap = {}; // NEW: Stores extracted SKUs { "Product Name": "SKU" }
           let renamedCampaignsList = []; // Tracks campaigns that were renamed due to duplicates
           let loadedFileNames = { SP: null, SB: null }; // Track filenames for debug display
+          let lastExportedSheets = null; // Stores last exported sheet data for error retry
 
           /* --- DEBUG MODE STATE --- */
           let debugModeEnabled = false;
@@ -7912,6 +7959,121 @@
             return names;
           }
 
+          /* --- Parse Amazon Error Messages --- */
+          function parseAmazonErrors(errorText) {
+            // Pattern: "Campaign with name=XYZ already exists!"
+            const pattern = /Campaign with name=(.+?) already exists!/g;
+            const failedNames = [];
+            let match;
+            while ((match = pattern.exec(errorText)) !== null) {
+              failedNames.push(match[1].trim());
+            }
+            return [...new Set(failedNames)]; // Deduplicate
+          }
+
+          /* --- Retry Failed Campaigns: Re-export with new names --- */
+          function retryFailedCampaigns() {
+            const textarea = document.getElementById('retryErrorTextarea');
+            const statusEl = document.getElementById('retryStatus');
+            const errorText = textarea ? textarea.value.trim() : '';
+
+            if (!errorText) {
+              statusEl.innerHTML = '<span style="color:var(--error);">Please paste the error messages first.</span>';
+              return;
+            }
+
+            if (!lastExportedSheets) {
+              statusEl.innerHTML = '<span style="color:var(--error);">No previous export found. Please export your bulk file first, then use this feature.</span>';
+              return;
+            }
+
+            // 1. Parse error messages to get failed campaign names
+            const failedNames = parseAmazonErrors(errorText);
+            if (failedNames.length === 0) {
+              statusEl.innerHTML = '<span style="color:var(--error);">Could not find any campaign errors in the pasted text. Make sure to paste the full error message from Amazon.</span>';
+              return;
+            }
+
+            statusEl.innerHTML = `<span style="color:var(--primary);">Found ${failedNames.length} failed campaigns. Processing...</span>`;
+
+            // 2. Add ALL failed names to existingCampaignNames (they exist on Amazon!)
+            failedNames.forEach(name => existingCampaignNames.add(name));
+
+            // 3. Find matching rows in the stored export data & create renamed copies
+            const retryWb = XLSX.utils.book_new();
+            let totalRetryRows = 0;
+            const renameMap = {}; // oldName -> newName
+            renamedCampaignsList = []; // Reset for this retry
+
+            Object.keys(lastExportedSheets).forEach(sheetName => {
+              const sheetData = lastExportedSheets[sheetName];
+              if (!sheetData || sheetData.length < 2) return;
+
+              const headerRow = sheetData[0];
+              // Find the Campaign Name column index
+              const campNameIdx = headerRow.findIndex(h =>
+                (h || '').toString().toLowerCase().trim() === 'campaign name'
+              );
+              // Also find Ad Group Name column (same name as campaign usually)
+              const adGroupIdx = headerRow.findIndex(h =>
+                (h || '').toString().toLowerCase().trim() === 'ad group name'
+              );
+
+              if (campNameIdx === -1) return;
+
+              // Collect rows that belong to failed campaigns
+              const retryRows = [headerRow]; // Start with header
+
+              for (let i = 1; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                const campName = (row[campNameIdx] || '').toString().trim();
+
+                if (failedNames.includes(campName)) {
+                  // This row belongs to a failed campaign
+                  const newRow = [...row]; // Clone the row
+
+                  // Generate new name (cached per original name)
+                  if (!renameMap[campName]) {
+                    renameMap[campName] = getUniqueCampaignName(campName);
+                  }
+
+                  // Replace campaign name
+                  newRow[campNameIdx] = renameMap[campName];
+                  // Also replace ad group name if it matches the old campaign name
+                  if (adGroupIdx !== -1 && (newRow[adGroupIdx] || '').toString().trim() === campName) {
+                    newRow[adGroupIdx] = renameMap[campName];
+                  }
+
+                  retryRows.push(newRow);
+                  totalRetryRows++;
+                }
+              }
+
+              // Only add sheet if it has retry rows
+              if (retryRows.length > 1) {
+                const ws = XLSX.utils.aoa_to_sheet(retryRows);
+                XLSX.utils.book_append_sheet(retryWb, ws, sheetName);
+              }
+            });
+
+            if (totalRetryRows === 0) {
+              statusEl.innerHTML = '<span style="color:var(--error);">Could not find matching rows in the last export. Make sure to export the bulk file first, then paste errors.</span>';
+              return;
+            }
+
+            // 4. Export the retry file
+            XLSX.writeFile(retryWb, "TermHarvester_BulkUpload_RETRY.xlsx");
+
+            // 5. Show results
+            let resultHtml = `<div style="color:var(--success); font-weight:600; margin-bottom:8px;">✅ Retry file exported! (${totalRetryRows} rows)</div>`;
+            resultHtml += '<div style="font-size:11px; max-height:200px; overflow-y:auto;">';
+            Object.entries(renameMap).forEach(([oldName, newName]) => {
+              resultHtml += `<div style="margin-bottom:4px; padding:4px 8px; background:#f0fdf4; border-radius:4px;"><span style="color:#dc2626; text-decoration:line-through;">${oldName}</span> → <span style="color:#16a34a; font-weight:600;">${newName}</span></div>`;
+            });
+            resultHtml += '</div>';
+            statusEl.innerHTML = resultHtml;
+          }
+
           /* --- UPDATED: Download Bulk (With 3 Bidding Strategies & Modifier) --- */
           function downloadBulkWorkbook() {
             // Check for library availability first
@@ -8369,6 +8531,13 @@
                 const ws = XLSX.utils.aoa_to_sheet(sbvSheet);
                 XLSX.utils.book_append_sheet(wb, ws, "SBV Bulk");
               }
+
+              // Store sheet data for error retry feature
+              lastExportedSheets = {};
+              wb.SheetNames.forEach(sn => {
+                lastExportedSheets[sn] = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '' });
+              });
+              console.log('[EXPORT] Stored sheet data for retry:', Object.keys(lastExportedSheets));
 
               XLSX.writeFile(wb, "TermHarvester_BulkUpload.xlsx");
 
